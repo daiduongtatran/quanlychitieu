@@ -1,8 +1,67 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Trang chủ - Quản lý chi tiêu";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<section class="hero-section py-5 mb-5">
+    <div class="container py-5">
+        <div class="row align-items-center">
+            <div class="col-lg-7">
+                <h1 class="display-3 fw-bold mb-3">Quản lý dòng tiền,<br><span class="text-success">Kiến tạo tương lai</span></h1>
+                <p class="lead text-secondary mb-4 fs-4">
+                    Đừng để tiền "bay" mất mà không rõ lý do. SpendingSmart giúp bạn thống kê chi tiêu, lập kế hoạch tiết kiệm và kiểm soát tài chính chỉ trong 1 phút mỗi ngày.
+                </p>
+                <div class="d-grid gap-2 d-md-flex">
+                    <button type="button" class="btn btn-success btn-lg px-5 shadow">Trải nghiệm miễn phí</button>
+                    <button type="button" class="btn btn-outline-dark btn-lg px-4">Xem hướng dẫn</button>
+                </div>
+            </div>
+            <div class="col-lg-5 text-center d-none d-lg-block">
+                <div style="font-size: 12rem;" class="animate-bounce">💰</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div class="container">
+    <div class="row g-4 mb-5">
+        <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm p-4 text-center feature-card">
+                <div class="display-4 mb-3">📝</div>
+                <h3 class="h4 fw-bold">Ghi chép nhanh</h3>
+                <p class="text-muted">Nhập giao dịch thu chi nhanh chóng mọi lúc mọi nơi.</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm p-4 text-center feature-card">
+                <div class="display-4 mb-3">📊</div>
+                <h3 class="h4 fw-bold">Báo cáo chi tiết</h3>
+                <p class="text-muted">Biểu đồ trực quan giúp bạn phân tích thói quen tiêu xài.</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm p-4 text-center feature-card">
+                <div class="display-4 mb-3">🎯</div>
+                <h3 class="h4 fw-bold">Lập ngân sách</h3>
+                <p class="text-muted">Đặt giới hạn chi tiêu cho từng hạng mục để không bị quá tay.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="row align-items-center py-5 bg-white rounded-4 shadow-sm px-4 border-start border-success border-5">
+        <div class="col-md-4 text-center mb-4 mb-md-0">
+            <div style="font-size: 8rem;">🤝</div>
+        </div>
+        <div class="col-md-8">
+            <h2 class="fw-bold mb-3">Về chúng tôi</h2>
+            <p class="text-secondary mb-4 fs-5">
+                Hệ thống quản lý chi tiêu được phát triển bởi đội ngũ kỹ thuật trẻ với mục tiêu mang lại công cụ quản lý tài chính thông minh, dễ dùng nhất cho người Việt. Chúng tôi tin rằng sự kỷ luật trong chi tiêu là chìa khóa của sự tự do.
+            </p>
+            <div class="row g-2">
+                <div class="col-sm-6 fw-bold">✔️ Giao diện tinh gọn</div>
+                <div class="col-sm-6 fw-bold">✔️ Bảo mật 2 lớp</div>
+                <div class="col-sm-6 fw-bold">✔️ Đồng bộ đám mây</div>
+                <div class="col-sm-6 fw-bold">✔️ Hỗ trợ tận tâm</div>
+            </div>
+        </div>
+    </div>
 </div>
