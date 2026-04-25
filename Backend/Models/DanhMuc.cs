@@ -1,13 +1,20 @@
+using System.ComponentModel.DataAnnotations; // Quan trọng: Phải có dòng này!
+
 namespace Backend.Models
 {
     public class DanhMuc
     {
+        [Key] // Dòng này là bắt buộc để EF nhận MaDanhMuc là khóa chính
         public int MaDanhMuc { get; set; }
+
+        [Required, StringLength(100)]
         public string TenDanhMuc { get; set; }
-        public string LoaiDanhMuc { get; set; } // "Thu" hoặc "Chi"
-        public string BieuTuong { get; set; } // Ví dụ: "🍔", "🚗"
-        
-        // Link tới người dùng (nếu là danh mục riêng)
+
+        [Required, StringLength(20)]
+        public string LoaiDanhMuc { get; set; }
+
+        public string BieuTuong { get; set; }
+
         public int? MaNguoiDung { get; set; }
         public NguoiDung NguoiDung { get; set; }
     }

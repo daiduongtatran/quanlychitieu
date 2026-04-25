@@ -1,7 +1,11 @@
 ﻿@{
     ViewData["Title"] = "Trang chủ - Quản lý chi tiêu";
 }
-
+<div class="container mt-3">
+    <div class="alert @(ViewBag.Status.Contains("thành công") ? "alert-success" : "alert-danger")">
+        <strong>Trạng thái:</strong> @ViewBag.Status
+    </div>
+</div>
 <section class="hero-section py-5 mb-5">
     <div class="container py-5">
         <div class="row align-items-center">

@@ -1,9 +1,17 @@
+using System;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
 namespace Backend.Models
-{
-    public class NganSach
     {
-        public int MaNganSach { get; set; }
-        public decimal SoTienHanMuc { get; set; }
+        public class NganSach
+        {
+            [Key] // Dòng này là bắt buộc
+            public int MaNganSach { get; set; }
+
+            [Required]
+            [Column(TypeName = "decimal(18,2)")]
+            public decimal SoTienHanMuc { get; set; }
         public DateTime NgayBatDau { get; set; }
         public DateTime NgayKetThuc { get; set; }
 
@@ -12,5 +20,5 @@ namespace Backend.Models
 
         public int MaNguoiDung { get; set; }
         public NguoiDung NguoiDung { get; set; }
+        }
     }
-}
