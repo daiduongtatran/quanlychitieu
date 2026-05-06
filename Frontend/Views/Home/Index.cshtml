@@ -1,71 +1,203 @@
 ﻿@{
-    ViewData["Title"] = "Trang chủ - Quản lý chi tiêu";
+    ViewData["Title"] = "Trang chủ - SpendingSmart | Quản lý chi tiêu thông minh";
 }
-<div class="container mt-3">
-    <div class="alert @(ViewBag.Status.Contains("thành công") ? "alert-success" : "alert-danger")">
-        <strong>Trạng thái:</strong> @ViewBag.Status
+
+<!-- Status Message -->
+@if (ViewBag.Status != null)
+{
+    <div class="container mt-2">
+        <div class="alert @(ViewBag.Status.Contains("thành công") ? "alert-success" : "alert-danger") alert-dismissible fade show" role="alert">
+            <strong>@(ViewBag.Status.Contains("thành công") ? "Thành công!" : "Thông báo:")</strong> @ViewBag.Status
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
     </div>
-</div>
-<section class="hero-section py-5 mb-5">
-    <div class="container py-5">
-        <div class="row align-items-center">
-            <div class="col-lg-7">
-                <h1 class="display-3 fw-bold mb-3">Quản lý dòng tiền,<br><span class="text-success">Kiến tạo tương lai</span></h1>
-                <p class="lead text-secondary mb-4 fs-4">
-                    Đừng để tiền "bay" mất mà không rõ lý do. SpendingSmart giúp bạn thống kê chi tiêu, lập kế hoạch tiết kiệm và kiểm soát tài chính chỉ trong 1 phút mỗi ngày.
+}
+
+<!-- Hero Section -->
+<section class="hero-section py-5">
+    <div class="container py-md-5">
+        <div class="row align-items-center gy-5">
+            <div class="col-lg-6">
+                <div class="badge bg-light text-success mb-3 p-2">🚀 Giải pháp tài chính cho bạn</div>
+                <h1 class="display-4 fw-bold mb-3 lh-sm">
+                    Quản lý chi tiêu,<br>
+                    <span class="gradient-text">Chiến thắng tài chính</span>
+                </h1>
+                <p class="lead text-muted mb-4 fs-5">
+                    Công cụ quản lý chi tiêu thông minh giúp bạn kiểm soát tài chính, lập kế hoạch tiết kiệm và đạt mục tiêu tài chính cá nhân một cách hiệu quả.
                 </p>
-                <div class="d-grid gap-2 d-md-flex">
-                    <button type="button" class="btn btn-success btn-lg px-5 shadow">Trải nghiệm miễn phí</button>
-                    <button type="button" class="btn btn-outline-dark btn-lg px-4">Xem hướng dẫn</button>
+                <div class="d-flex gap-3 flex-wrap">
+                    <a href="/Account/Register" class="btn btn-success btn-lg px-5 shadow-lg fw-bold">
+                        <i class="bi bi-arrow-right"></i> Bắt đầu miễn phí
+                    </a>
+                    <button type="button" class="btn btn-outline-success btn-lg px-5 fw-bold">
+                        <i class="bi bi-play-circle"></i> Xem demo
+                    </button>
+                </div>
+                <div class="mt-4 pt-2">
+                    <p class="small text-muted">
+                        <i class="bi bi-shield-check"></i> Bảo mật SSL
+                        <span class="mx-2">•</span>
+                        <i class="bi bi-cloud-check"></i> Đồng bộ đám mây
+                        <span class="mx-2">•</span>
+                        <i class="bi bi-person"></i> Hỗ trợ 24/7
+                    </p>
                 </div>
             </div>
-            <div class="col-lg-5 text-center d-none d-lg-block">
-                <div style="font-size: 12rem;" class="animate-bounce">💰</div>
+            <div class="col-lg-6 text-center">
+                <div class="hero-illustration p-4">
+                    <div class="illustration-animated">
+                        <div class="floating-icon icon-1">📊</div>
+                        <div class="floating-icon icon-2">💰</div>
+                        <div class="floating-icon icon-3">📈</div>
+                        <div class="floating-icon icon-4">🎯</div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </section>
 
-<div class="container">
-    <div class="row g-4 mb-5">
-        <div class="col-md-4">
-            <div class="card h-100 border-0 shadow-sm p-4 text-center feature-card">
-                <div class="display-4 mb-3">📝</div>
-                <h3 class="h4 fw-bold">Ghi chép nhanh</h3>
-                <p class="text-muted">Nhập giao dịch thu chi nhanh chóng mọi lúc mọi nơi.</p>
-            </div>
+<!-- Features Section -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="fw-bold mb-2 display-5">Tính năng chính</h2>
+            <p class="text-muted fs-5">Mọi công cụ bạn cần để quản lý tài chính hiệu quả</p>
         </div>
-        <div class="col-md-4">
-            <div class="card h-100 border-0 shadow-sm p-4 text-center feature-card">
-                <div class="display-4 mb-3">📊</div>
-                <h3 class="h4 fw-bold">Báo cáo chi tiết</h3>
-                <p class="text-muted">Biểu đồ trực quan giúp bạn phân tích thói quen tiêu xài.</p>
+        <div class="row g-4">
+            <div class="col-md-6 col-lg-3">
+                <div class="feature-card h-100">
+                    <div class="feature-icon bg-success-light">📝</div>
+                    <h4 class="fw-bold mt-3">Ghi chép nhanh</h4>
+                    <p class="text-muted">Nhập giao dịch thu chi nhanh chóng, chi tiết mọi lúc mọi nơi chỉ trong vài giây.</p>
+                </div>
             </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card h-100 border-0 shadow-sm p-4 text-center feature-card">
-                <div class="display-4 mb-3">🎯</div>
-                <h3 class="h4 fw-bold">Lập ngân sách</h3>
-                <p class="text-muted">Đặt giới hạn chi tiêu cho từng hạng mục để không bị quá tay.</p>
+            <div class="col-md-6 col-lg-3">
+                <div class="feature-card h-100">
+                    <div class="feature-icon bg-info-light">📊</div>
+                    <h4 class="fw-bold mt-3">Báo cáo chi tiết</h4>
+                    <p class="text-muted">Biểu đồ trực quan và báo cáo toàn diện giúp phân tích thói quen tiêu xài.</p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <div class="feature-card h-100">
+                    <div class="feature-icon bg-warning-light">🎯</div>
+                    <h4 class="fw-bold mt-3">Lập ngân sách</h4>
+                    <p class="text-muted">Đặt giới hạn chi tiêu cho từng danh mục để kiểm soát chi tiêu hiệu quả.</p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <div class="feature-card h-100">
+                    <div class="feature-icon bg-danger-light">🔔</div>
+                    <h4 class="fw-bold mt-3">Thông báo thông minh</h4>
+                    <p class="text-muted">Nhận cảnh báo khi chi tiêu vượt ngân sách hoặc đạt mục tiêu tiết kiệm.</p>
+                </div>
             </div>
         </div>
     </div>
+</section>
 
-    <div class="row align-items-center py-5 bg-white rounded-4 shadow-sm px-4 border-start border-success border-5">
-        <div class="col-md-4 text-center mb-4 mb-md-0">
-            <div style="font-size: 8rem;">🤝</div>
-        </div>
-        <div class="col-md-8">
-            <h2 class="fw-bold mb-3">Về chúng tôi</h2>
-            <p class="text-secondary mb-4 fs-5">
-                Hệ thống quản lý chi tiêu được phát triển bởi đội ngũ kỹ thuật trẻ với mục tiêu mang lại công cụ quản lý tài chính thông minh, dễ dùng nhất cho người Việt. Chúng tôi tin rằng sự kỷ luật trong chi tiêu là chìa khóa của sự tự do.
-            </p>
-            <div class="row g-2">
-                <div class="col-sm-6 fw-bold">✔️ Giao diện tinh gọn</div>
-                <div class="col-sm-6 fw-bold">✔️ Bảo mật 2 lớp</div>
-                <div class="col-sm-6 fw-bold">✔️ Đồng bộ đám mây</div>
-                <div class="col-sm-6 fw-bold">✔️ Hỗ trợ tận tâm</div>
+<!-- Stats Section -->
+<section class="py-5">
+    <div class="container">
+        <div class="row g-4 text-center">
+            <div class="col-md-4">
+                <div class="stat-card">
+                    <h3 class="display-5 fw-bold text-success">10K+</h3>
+                    <p class="text-muted fs-5">Người dùng đang sử dụng</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stat-card">
+                    <h3 class="display-5 fw-bold text-success">500M+</h3>
+                    <p class="text-muted fs-5">Giao dịch được xử lý</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stat-card">
+                    <h3 class="display-5 fw-bold text-success">4.8⭐</h3>
+                    <p class="text-muted fs-5">Đánh giá từ người dùng</p>
+                </div>
             </div>
         </div>
     </div>
-</div>
+</section>
+
+<!-- Why Us Section -->
+<section class="py-5 bg-success bg-opacity-5">
+    <div class="container">
+        <div class="row align-items-center gy-4">
+            <div class="col-lg-5">
+                <h2 class="fw-bold mb-4 display-5">Tại sao chọn SpendingSmart?</h2>
+                <div class="mb-4">
+                    <div class="d-flex gap-3 mb-3">
+                        <div class="check-icon">✓</div>
+                        <div>
+                            <h5 class="fw-bold">Dễ sử dụng</h5>
+                            <p class="text-muted">Giao diện trực quan, không cần đào tạo phức tạp</p>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-3 mb-3">
+                        <div class="check-icon">✓</div>
+                        <div>
+                            <h5 class="fw-bold">Bảo mật cao</h5>
+                            <p class="text-muted">Mã hóa SSL, bảo mật 2 lớp, tuân thủ GDPR</p>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-3 mb-3">
+                        <div class="check-icon">✓</div>
+                        <div>
+                            <h5 class="fw-bold">Hỗ trợ tuyệt vời</h5>
+                            <p class="text-muted">Đội ngũ hỗ trợ sẵn sàng 24/7 cho bạn</p>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-3">
+                        <div class="check-icon">✓</div>
+                        <div>
+                            <h5 class="fw-bold">Miễn phí vĩnh viễn</h5>
+                            <p class="text-muted">Dùng không giới hạn mà không cần thanh toán</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-7">
+                <div class="showcase-image">
+                    <div class="showcase-card">
+                        <div class="showcase-header">
+                            <div class="circle small"></div>
+                            <div class="circle medium"></div>
+                            <div class="circle large"></div>
+                        </div>
+                        <div class="showcase-content">
+                            <h5 class="fw-bold mb-3">Giao dịch này tháng</h5>
+                            <div class="showcase-stat mb-2">
+                                <span>Thuế tế:</span>
+                                <span class="fw-bold">15.5M ₫</span>
+                            </div>
+                            <div class="showcase-stat mb-2">
+                                <span>Chi tiêu:</span>
+                                <span class="fw-bold">8.2M ₫</span>
+                            </div>
+                            <div class="showcase-stat">
+                                <span>Tiết kiệm:</span>
+                                <span class="fw-bold text-success">7.3M ₫</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="py-5 bg-gradient">
+    <div class="container text-center">
+        <h2 class="display-5 fw-bold mb-3 text-white">Sẵn sàng quản lý tài chính của bạn?</h2>
+        <p class="lead text-white-50 mb-4 fs-5">Tham gia hàng ngàn người dùng đang tối ưu hóa tài chính cá nhân của họ</p>
+        <a href="/Account/Register" class="btn btn-light btn-lg px-5 fw-bold">
+            Đăng ký ngay - Hoàn toàn miễn phí
+        </a>
+    </div>
+</section>
