@@ -1,11 +1,15 @@
 using Microsoft.EntityFrameworkCore;
-using Backend.Data; // Đảm bảo namespace này khớp với nơi bạn để file AppDbContext
+using Backend.Data;
+using Backend.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Đăng ký DbContext với chuỗi kết nối từ appsettings.json
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// Đăng ký UserService
+builder.Services.AddScoped<IUserService, UserService>();
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();

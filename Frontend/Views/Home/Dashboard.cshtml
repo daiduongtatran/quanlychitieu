@@ -1,0 +1,161 @@
+@model Backend.Models.NguoiDung
+
+@{
+    ViewData["Title"] = "Trang chủ - SpendingSmart";
+    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
+}
+
+<div class="page-header mb-4">
+    <h1 class="page-title">Xin chào, <strong>@ViewBag.UserName</strong>! 👋</h1>
+    <p class="page-subtitle">Chào mừng bạn trở lại hệ thống quản lý chi tiêu của chúng tôi</p>
+</div>
+
+<div class="row">
+    <!-- Quick Stats -->
+    <div class="col-md-3 mb-4">
+        <div class="stat-card">
+            <div class="stat-icon icon-expense">
+                <i class="bi bi-arrow-down-circle"></i>
+            </div>
+            <div class="stat-content">
+                <h5>Chi tiêu hôm nay</h5>
+                <p class="stat-value">0 VNĐ</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 mb-4">
+        <div class="stat-card">
+            <div class="stat-icon icon-budget">
+                <i class="bi bi-wallet2"></i>
+            </div>
+            <div class="stat-content">
+                <h5>Ngân sách tháng</h5>
+                <p class="stat-value">0 VNĐ</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 mb-4">
+        <div class="stat-card">
+            <div class="stat-icon icon-category">
+                <i class="bi bi-tag-fill"></i>
+            </div>
+            <div class="stat-content">
+                <h5>Danh mục</h5>
+                <p class="stat-value">0</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 mb-4">
+        <div class="stat-card">
+            <div class="stat-icon icon-transaction">
+                <i class="bi bi-arrow-left-right"></i>
+            </div>
+            <div class="stat-content">
+                <h5>Giao dịch</h5>
+                <p class="stat-value">0</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Transactions -->
+<div class="card mt-4">
+    <div class="card-header">
+        <h5 class="mb-0">Giao dịch gần đây</h5>
+    </div>
+    <div class="card-body">
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle"></i> Chưa có giao dịch nào. Bắt đầu thêm giao dịch để quản lý chi tiêu của bạn.
+        </div>
+    </div>
+</div>
+
+<style>
+.page-header {
+    padding: 20px 0;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.page-title {
+    font-size: 28px;
+    font-weight: 700;
+    color: #2c3e50;
+    margin-bottom: 5px;
+}
+
+.page-subtitle {
+    color: #7f8c8d;
+    font-size: 14px;
+}
+
+.stat-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 10px;
+    padding: 20px;
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.stat-card.icon-expense {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+}
+
+.stat-card.icon-budget {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+}
+
+.stat-card.icon-category {
+    background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+}
+
+.stat-card.icon-transaction {
+    background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+}
+
+.stat-icon {
+    font-size: 32px;
+    min-width: 50px;
+}
+
+.stat-content h5 {
+    font-size: 12px;
+    font-weight: 600;
+    opacity: 0.9;
+    margin-bottom: 5px;
+}
+
+.stat-value {
+    font-size: 18px;
+    font-weight: 700;
+    margin: 0;
+}
+
+.card {
+    border: none;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+}
+
+.card-header {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #e0e0e0;
+    padding: 20px;
+    border-radius: 10px 10px 0 0;
+}
+
+.card-header h5 {
+    color: #2c3e50;
+}
+</style>

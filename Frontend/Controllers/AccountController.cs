@@ -1,15 +1,19 @@
 using Microsoft.AspNetCore.Mvc;
 using Frontend.Models;
+using Backend.Services;
+using Backend.Models;
 
 namespace Frontend.Controllers
 {
     public class AccountController : Controller
     {
         private readonly ILogger<AccountController> _logger;
+        private readonly IUserService _userService;
 
-        public AccountController(ILogger<AccountController> logger)
+        public AccountController(ILogger<AccountController> logger, IUserService userService)
         {
             _logger = logger;
+            _userService = userService;
         }
 
         // GET: Account/Login
@@ -22,28 +26,28 @@ namespace Frontend.Controllers
         // POST: Account/Login
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Login(LoginModel model)
+        public async Task<IActionResult> Login(LoginModel model)
         {
-            if (ModelState.IsValid)
+            if (ModelState.IsValid && !string.IsNullOrEmpty(model.Email) && !string.IsNullOrEmpty(model.Password))
             {
                 try
                 {
-                    // TODO: Implement login logic with backend
-                    // For now, we'll just validate and store in session
-                    
-                    // In a real application, you would:
-                    // 1. Validate against database
-                    // 2. Create authentication token/cookie
-                    // 3. Redirect to dashboard
-                    
-                    // Temporary: Store in session for demo
-                    if (!string.IsNullOrEmpty(model.Email))
+                    var (success, message, user) = await _userService.LoginUserAsync(model.Email, model.Password);
+
+                    if (success && user != null)
                     {
-                        HttpContext.Session.SetString("UserEmail", model.Email);
+                        // Store user info in session
+                        HttpContext.Session.SetInt32("UserId", user.MaNguoiDung);
+                        HttpContext.Session.SetString("UserEmail", user.Email ?? "");
+                        HttpContext.Session.SetString("UserName", user.HoTen ?? "");
+
+                        TempData["SuccessMessage"] = message;
+                        return RedirectToAction("Dashboard", "Home");
                     }
-                    
-                    TempData["SuccessMessage"] = "Đăng nhập thành công!";
-                    return RedirectToAction("Dashboard", "Home");
+                    else
+                    {
+                        ModelState.AddModelError("", message);
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -65,34 +69,31 @@ namespace Frontend.Controllers
         // POST: Account/Register
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Register(RegisterModel model)
+        public async Task<IActionResult> Register(RegisterModel model)
         {
-            if (ModelState.IsValid)
+            if (ModelState.IsValid && !string.IsNullOrEmpty(model.Email) && !string.IsNullOrEmpty(model.FullName) && !string.IsNullOrEmpty(model.Password))
             {
                 try
                 {
-                    // TODO: Implement registration logic with backend
-                    // For now, we'll just validate
-                    
-                    // In a real application, you would:
-                    // 1. Check if email exists in database
-                    // 2. Hash password
-                    // 3. Save user to database
-                    // 4. Send verification email
-                    // 5. Create authentication token
-                    
-                    // Temporary: Store in session for demo
-                    if (!string.IsNullOrEmpty(model.Email))
+                    // Generate username from email if not provided
+                    string tenDangNhap = model.Email.Split('@')[0];
+
+                    var (success, message, userId) = await _userService.RegisterUserAsync(
+                        tenDangNhap,
+                        model.Email,
+                        model.FullName,
+                        model.Password
+                    );
+
+                    if (success)
                     {
-                        HttpContext.Session.SetString("UserEmail", model.Email);
+                        TempData["SuccessMessage"] = message;
+                        return RedirectToAction("Login");
                     }
-                    if (!string.IsNullOrEmpty(model.FullName))
+                    else
                     {
-                        HttpContext.Session.SetString("UserName", model.FullName);
+                        ModelState.AddModelError("", message);
                     }
-                    
-                    TempData["SuccessMessage"] = "Đăng ký thành công! Vui lòng xác nhận email của bạn.";
-                    return RedirectToAction("Login");
                 }
                 catch (Exception ex)
                 {
@@ -109,34 +110,7 @@ namespace Frontend.Controllers
         public IActionResult Logout()
         {
             HttpContext.Session.Clear();
-            TempData["SuccessMessage"] = "Đã đăng xuất thành công!";
-            return RedirectToAction("Index", "Home");
-        }
-
-        // GET: Account/ForgotPassword
-        [HttpGet]
-        public IActionResult ForgotPassword()
-        {
-            return View();
-        }
-
-        // POST: Account/ForgotPassword
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public IActionResult ForgotPassword(string email)
-        {
-            if (string.IsNullOrEmpty(email))
-            {
-                ModelState.AddModelError("email", "Email không được bỏ trống");
-                return View();
-            }
-
-            // TODO: Implement password reset logic
-            // 1. Check if email exists
-            // 2. Generate reset token
-            // 3. Send reset link via email
-            
-            TempData["InfoMessage"] = "Hướng dẫn đặt lại mật khẩu đã được gửi đến email của bạn.";
+            TempData["SuccessMessage"] = "Đăng xuất thành công!";
             return RedirectToAction("Login");
         }
     }
