@@ -1,10 +1,10 @@
-using System.ComponentModel.DataAnnotations; // Quan trọng: Phải có dòng này!
+using System.ComponentModel.DataAnnotations;
 
 namespace Backend.Models
 {
     public class DanhMuc
     {
-        [Key] // Dòng này là bắt buộc để EF nhận MaDanhMuc là khóa chính
+        [Key]
         public int MaDanhMuc { get; set; }
 
         [Required, StringLength(100)]

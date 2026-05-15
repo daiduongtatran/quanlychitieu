@@ -6,7 +6,7 @@ namespace Backend.Models
     {
         public class NganSach
         {
-            [Key] // Dòng này là bắt buộc
+            [Key]
             public int MaNganSach { get; set; }
 
             [Required]

@@ -6,7 +6,7 @@ namespace Backend.Models
 {
     public class GiaoDich
     {
-        [Key] // Thêm dòng này để EF nhận diện khóa chính
+        [Key]
         public int MaGiaoDich { get; set; }
 
         [Required]

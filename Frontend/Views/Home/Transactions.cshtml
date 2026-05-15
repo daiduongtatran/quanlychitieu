@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+@{
+    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
+    ViewData["Title"] = "Lịch sử giao dịch";
+}   
+<div class="page-header mb-4">
+    <h1 class="page-title
+">Lịch sử giao dịch</h1>
+    <p class="page-subtitle">Xem lại các giao dịch đã thực hiện của bạn</p>
+</div>  
+<div class="card mb-4">
+    <div class="card-body">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Ngày</th>
+                    <th>Loại</th>
+                    <th>Số tiền</th>
+                    <th>Danh mục</th>
+                    <th>Mô tả</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Dữ liệu giao dịch sẽ được hiển thị ở đây -->
+                <tr>
+                    <td>2024-06-01</td>
+                    <td>Chi tiêu</td>
+                    <td>100,000 VNĐ</td>
+                    <td>Ăn uống</td>
+                    <td>Ăn trưa tại nhà hàng</td>
+                </tr>
+                <!-- Thêm các giao dịch khác -->
+            </tbody>
+        </table>
+    </div>

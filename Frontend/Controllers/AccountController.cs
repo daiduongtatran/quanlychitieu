@@ -16,14 +16,12 @@ namespace Frontend.Controllers
             _userService = userService;
         }
 
-        // GET: Account/Login
         [HttpGet]
         public IActionResult Login()
         {
             return View();
         }
 
-        // POST: Account/Login
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Login(LoginModel model)
@@ -36,7 +34,6 @@ namespace Frontend.Controllers
 
                     if (success && user != null)
                     {
-                        // Store user info in session
                         HttpContext.Session.SetInt32("UserId", user.MaNguoiDung);
                         HttpContext.Session.SetString("UserEmail", user.Email ?? "");
                         HttpContext.Session.SetString("UserName", user.HoTen ?? "");
@@ -59,14 +56,12 @@ namespace Frontend.Controllers
             return View(model);
         }
 
-        // GET: Account/Register
         [HttpGet]
         public IActionResult Register()
         {
             return View();
         }
 
-        // POST: Account/Register
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Register(RegisterModel model)
@@ -75,7 +70,6 @@ namespace Frontend.Controllers
             {
                 try
                 {
-                    // Generate username from email if not provided
                     string tenDangNhap = model.Email.Split('@')[0];
 
                     var (success, message, userId) = await _userService.RegisterUserAsync(
@@ -104,8 +98,6 @@ namespace Frontend.Controllers
 
             return View(model);
         }
-
-        // GET: Account/Logout
         [HttpGet]
         public IActionResult Logout()
         {

@@ -17,10 +17,6 @@ namespace Backend.Services
             _context = context;
             _logger = logger;
         }
-
-        /// <summary>
-        /// Hash password using SHA-256
-        /// </summary>
         private string HashPassword(string password)
         {
             using (var sha256 = SHA256.Create())
@@ -29,10 +25,6 @@ namespace Backend.Services
                 return Convert.ToBase64String(hashedBytes);
             }
         }
-
-        /// <summary>
-        /// Verify password
-        /// </summary>
         private bool VerifyPassword(string password, string hash)
         {
             var hashOfInput = HashPassword(password);
@@ -43,7 +35,6 @@ namespace Backend.Services
         {
             try
             {
-                // Validate input
                 if (string.IsNullOrWhiteSpace(tenDangNhap))
                     return (false, "Tên đăng nhập không được để trống", null);
 
@@ -55,15 +46,13 @@ namespace Backend.Services
 
                 if (string.IsNullOrWhiteSpace(password) || password.Length < 6)
                     return (false, "Mật khẩu phải có ít nhất 6 ký tự", null);
-
-                // Check if email or username already exists
+// check xem email da ton tai ch
                 if (await EmailExistsAsync(email))
                     return (false, "Email này đã được sử dụng", null);
 
                 if (await UsernameExistsAsync(tenDangNhap))
                     return (false, "Tên đăng nhập này đã được sử dụng", null);
 
-                // Create new user
                 var newUser = new NguoiDung
                 {
                     TenDangNhap = tenDangNhap,
@@ -90,20 +79,17 @@ namespace Backend.Services
         {
             try
             {
-                // Validate input
                 if (string.IsNullOrWhiteSpace(email))
                     return (false, "Email không được để trống", null);
 
                 if (string.IsNullOrWhiteSpace(password))
                     return (false, "Mật khẩu không được để trống", null);
 
-                // Find user by email
                 var user = await _context.NguoiDung.FirstOrDefaultAsync(u => u.Email == email);
 
                 if (user == null)
                     return (false, "Email hoặc mật khẩu không chính xác", null);
 
-                // Verify password
                 if (!VerifyPassword(password, user.MatKhauHash))
                     return (false, "Email hoặc mật khẩu không chính xác", null);
 

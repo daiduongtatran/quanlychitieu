@@ -16,14 +16,13 @@ namespace Backend.Models
 
         [EmailAddress(ErrorMessage = "Email không đúng định dạng")]
         [StringLength(100)]
-        public string Email { get; set; } // Đã bổ sung trường Email
+        public string Email { get; set; }
 
         [StringLength(100)]
         public string HoTen { get; set; }
 
         public DateTime NgayTao { get; set; } = DateTime.Now;
 
-        // Quan hệ 1-n: Một người dùng có nhiều giao dịch
         public ICollection<GiaoDich> GiaoDichs { get; set; }
     }
 }

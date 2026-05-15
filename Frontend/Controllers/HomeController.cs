@@ -19,16 +19,18 @@ namespace Frontend.Controllers
 
         public IActionResult Index()
         {
-            // Kiểm tra kết nối tới DB
             bool isConnected = _context.Database.CanConnect();
             ViewBag.Status = isConnected ? "Kết nối Database thành công!" : "Kết nối Database thất bại!";
 
             return View();
         }
+        public IActionResult Transactions()
+    {
+        return View();
+    }
 
         public async Task<IActionResult> Dashboard()
         {
-            // Check if user is logged in
             var userId = HttpContext.Session.GetInt32("UserId");
             if (!userId.HasValue)
             {
@@ -46,7 +48,6 @@ namespace Frontend.Controllers
 
                 ViewBag.UserName = user.HoTen;
                 ViewBag.UserEmail = user.Email;
-                
                 return View(user);
             }
             catch (Exception ex)
