@@ -16,6 +16,7 @@ namespace Backend.Models
         public DateTime NgayKetThuc { get; set; }
 
         public int MaDanhMuc { get; set; }
+        [ForeignKey("MaDanhMuc")]
         public DanhMuc DanhMuc { get; set; }
 
         public int MaNguoiDung { get; set; }

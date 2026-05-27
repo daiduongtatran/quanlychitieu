@@ -25,7 +25,7 @@ namespace Backend.Models
         public DateTime NgayTao { get; set; } = DateTime.Now;
 
         [Column(TypeName = "decimal(18,2)")]
-        public decimal SoDuTaiKhoan { get; set; } = 0;
+        public decimal? SoDuTaiKhoan { get; set; } = 0;
 
         public ICollection<GiaoDich> GiaoDichs { get; set; }
     }

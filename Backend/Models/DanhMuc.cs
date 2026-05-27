@@ -25,10 +25,7 @@ namespace Backend.Models
         [StringLength(50, ErrorMessage = "Biểu tượng không được vượt quá 50 ký tự")]
         public string BieuTuong { get; set; }
 
-        [Required]
-        public int MaNguoiDung { get; set; }
-
-        [ForeignKey("MaNguoiDung")]
+        public int? MaNguoiDung { get; set; }
         public NguoiDung NguoiDung { get; set; }
 
         public ICollection<GiaoDich> GiaoDich { get; set; }
