@@ -1,0 +1,94 @@
+@model IEnumerable<Backend.Models.DanhMuc>
+@{
+    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
+    ViewData["Title"] = "Quản lý danh mục";
+}
+
+<div class="page-header mb-4 d-flex justify-content-between align-items-center">
+    <div>
+        <h1 class="page-title">Quản lý danh mục</h1>
+        <p class="page-subtitle">Quản lý các danh mục chi tiêu và thu nhập của bạn</p>
+    </div>
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createModal">
+        <i class="bi bi-plus-circle"></i> Thêm danh mục mới
+    </button>
+</div>
+
+<div class="card mb-4">
+    <div class="card-body">
+        <table class="table table-striped align-middle">
+            <thead>
+                <tr>
+                    <th style="width: 15%">Biểu tượng</th>
+                    <th>Tên danh mục</th>
+                    <th style="width: 20%" class="text-center">Hành động</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model != null && Model.Any())
+                {
+                    foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>
+                                <span class="badge bg-light text-dark p-2">
+                                    <i class="@item.BieuTuong"></i> @item.BieuTuong
+                                </span>
+                            </td>
+                            <td><strong>@item.TenDanhMuc</strong></td>
+                            <td class="text-center">
+                                <form asp-action="Delete" asp-route-id="@item.MaDanhMuc" method="post" onsubmit="return confirm('Bạn có chắc chắn muốn xóa danh mục này? Các giao dịch thuộc danh mục này có thể bị ảnh hưởng.');" style="display:inline;">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-outline-danger btn-sm">
+                                        <i class="bi bi-trash"></i> Xóa
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="3" class="text-center text-muted py-4">Bạn chưa tạo danh mục chi tiêu nào.</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="modal fade" id="createModal" tabindex="-1" aria-labelledby="createModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form asp-action="Create" method="post">
+                @Html.AntiForgeryToken()
+                <div class="modal-header">
+                    <h5 class="modal-title" id="createModalLabel">Thêm danh mục mới</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Tên danh mục</label>
+                        <input name="TenDanhMuc" class="form-control" placeholder="Ví dụ: Ăn uống, Di chuyển, Mua sắm..." required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Biểu tượng (Class của Bootstrap Icons hoặc FontAwesome)</label>
+                        <input name="BieuTuong" class="form-control" placeholder="Ví dụ: bi bi-cart, bi bi-house, fa-utensils" />
+                        <small class="text-muted">Bạn có thể sử dụng các class biểu tượng hệ thống đang hỗ trợ.</small>
+                        <label class="form-label">Loại danh mục</label>
+                    <select name="LoaiDanhMuc" class="form-select" required>
+                        <option value="">-- Chọn phân loại --</option>
+                        <option value="Chi">Chi tiêu</option>
+                        <option value="Thu">Thu nhập</option>
+                    </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                    <button type="submit" class="btn btn-primary">Lưu lại</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
