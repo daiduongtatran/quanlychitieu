@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Backend.Models
 {
@@ -14,8 +15,9 @@ namespace Backend.Models
         public string LoaiDanhMuc { get; set; }
 
         public string BieuTuong { get; set; }
-
+        
         public int? MaNguoiDung { get; set; }
+        [ForeignKey("MaNguoiDung")]
         public NguoiDung NguoiDung { get; set; }
     }
 }

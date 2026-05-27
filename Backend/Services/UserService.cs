@@ -17,6 +17,7 @@ namespace Backend.Services
             _context = context;
             _logger = logger;
         }
+
         private string HashPassword(string password)
         {
             using (var sha256 = SHA256.Create())
@@ -25,10 +26,11 @@ namespace Backend.Services
                 return Convert.ToBase64String(hashedBytes);
             }
         }
+
         private bool VerifyPassword(string password, string hash)
         {
             var hashOfInput = HashPassword(password);
-            return hashOfInput == hash;
+            return hashOfInput == hash?.Trim();
         }
 
         public async Task<(bool Success, string Message, int? UserId)> RegisterUserAsync(string tenDangNhap, string email, string hoTen, string password)
@@ -46,18 +48,18 @@ namespace Backend.Services
 
                 if (string.IsNullOrWhiteSpace(password) || password.Length < 6)
                     return (false, "Mật khẩu phải có ít nhất 6 ký tự", null);
-// check xem email da ton tai ch
-                if (await EmailExistsAsync(email))
+
+                if (await EmailExistsAsync(email.Trim()))
                     return (false, "Email này đã được sử dụng", null);
 
-                if (await UsernameExistsAsync(tenDangNhap))
+                if (await UsernameExistsAsync(tenDangNhap.Trim()))
                     return (false, "Tên đăng nhập này đã được sử dụng", null);
 
                 var newUser = new NguoiDung
                 {
-                    TenDangNhap = tenDangNhap,
-                    Email = email,
-                    HoTen = hoTen,
+                    TenDangNhap = tenDangNhap.Trim(),
+                    Email = email.Trim().ToLower(), 
+                    HoTen = hoTen.Trim(),
                     MatKhauHash = HashPassword(password),
                     NgayTao = DateTime.Now
                 };
@@ -85,14 +87,31 @@ namespace Backend.Services
                 if (string.IsNullOrWhiteSpace(password))
                     return (false, "Mật khẩu không được để trống", null);
 
-                var user = await _context.NguoiDung.FirstOrDefaultAsync(u => u.Email == email);
+
+                Console.WriteLine($"\n[DIAGNOSTIC] === TIẾN TRÌNH ĐĂNG NHẬP ===");
+                Console.WriteLine($"[DIAGNOSTIC] Email nhập vào form: '{email}'");
+                Console.WriteLine($"[DIAGNOSTIC] Mật khẩu nhập vào form: '{password}'");
+
+                var user = await _context.NguoiDung
+                    .FirstOrDefaultAsync(u => u.Email.Trim().ToLower() == email.Trim().ToLower());
 
                 if (user == null)
+                {
+                    Console.WriteLine("[DIAGNOSTIC] KẾT QUẢ: Không tìm thấy Email này trong Database!");
                     return (false, "Email hoặc mật khẩu không chính xác", null);
+                }
+
+                Console.WriteLine($"[DIAGNOSTIC] Kết quả DB: Tìm thấy tài khoản '{user.TenDangNhap}'");
+                Console.WriteLine($"[DIAGNOSTIC] Chuỗi Hash trong DB: '{user.MatKhauHash}'");
+                Console.WriteLine($"[DIAGNOSTIC] Chuỗi Hash từ form sinh ra: '{HashPassword(password)}'");
 
                 if (!VerifyPassword(password, user.MatKhauHash))
+                {
+                    Console.WriteLine("[DIAGNOSTIC] KẾT QUẢ: Mật khẩu không khớp! Xác thực thất bại.");
                     return (false, "Email hoặc mật khẩu không chính xác", null);
+                }
 
+                Console.WriteLine("[DIAGNOSTIC] KẾT QUẢ: Xác thực thành công! Đang chuyển hướng sang Dashboard.");
                 _logger.LogInformation($"User logged in successfully: {email}");
                 return (true, "Đăng nhập thành công!", user);
             }
@@ -105,17 +124,17 @@ namespace Backend.Services
 
         public async Task<bool> EmailExistsAsync(string email)
         {
-            return await _context.NguoiDung.AnyAsync(u => u.Email == email);
+            return await _context.NguoiDung.AnyAsync(u => u.Email.Trim().ToLower() == email.Trim().ToLower());
         }
 
         public async Task<bool> UsernameExistsAsync(string tenDangNhap)
         {
-            return await _context.NguoiDung.AnyAsync(u => u.TenDangNhap == tenDangNhap);
+            return await _context.NguoiDung.AnyAsync(u => u.TenDangNhap.Trim().ToLower() == tenDangNhap.Trim().ToLower());
         }
 
         public async Task<NguoiDung?> GetUserByEmailAsync(string email)
         {
-            return await _context.NguoiDung.FirstOrDefaultAsync(u => u.Email == email);
+            return await _context.NguoiDung.FirstOrDefaultAsync(u => u.Email.Trim().ToLower() == email.Trim().ToLower());
         }
 
         public async Task<NguoiDung?> GetUserByIdAsync(int id)
