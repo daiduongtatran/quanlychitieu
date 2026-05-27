@@ -96,7 +96,11 @@
                 @if (recentTransactions.Count == 0)
                 {
                     <div class="alert alert-info">
-                        <i class="bi bi-info-circle"></i> Chưa có giao dịch nào. Bắt đầu thêm giao dịch để quản lý chi tiêu của bạn.
+                    Chưa có giao dịch nào. Bắt đầu 
+                    <a href="javascript:void(0);" class="text-decoration-underline fw-bold" data-bs-toggle="modal" data-bs-target="#modalThemGiaoDich">
+                        thêm giao dịch
+                    </a> 
+                    để quản lý chi tiêu của bạn.
                     </div>
                 }
                 else
@@ -287,6 +291,53 @@
     </div>
 </div>
 
+<div class="modal fade" id="modalThemGiaoDich" tabindex="-1" aria-labelledby="modalThemGiaoDichLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="modalThemGiaoDichLabel">➕ Thêm Giao Dịch Mới</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form asp-controller="Home" asp-action="ThemGiaoDich" method="post">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Số tiền (VNĐ)</label>
+                        <input type="number" name="SoTien" class="form-control" placeholder="Ví dụ: 50000" required />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Danh mục chi tiêu</label>
+                        <select name="MaDanhMuc" class="form-select" required>
+                            <option value="">-- Chọn danh mục --</option>
+
+                            @if (ViewBag.DanhSachDanhMuc != null)
+                            {
+                                foreach (var dm in ViewBag.DanhSachDanhMuc)
+                                {
+                                    <option value="@dm.MaDanhMuc">@dm.BieuTuong @dm.TenDanhMuc</option>
+                                }
+                            }
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Ngày giao dịch</label>
+                        <input type="date" name="NgayGiaoDich" class="form-control" value="@DateTime.Now.ToString("yyyy-MM-dd")" required />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Ghi chú / Mô tả</label>
+                        <textarea name="GhiChu" class="form-control" rows="2" placeholder="Ví dụ: Mua cơm trưa..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-success">Lưu giao dịch</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 <style>
 /* Page Header */
 .page-header {

@@ -25,41 +25,90 @@ namespace Frontend.Controllers
 
             return View();
         }
-        public async Task<IActionResult> Transactions()
+        [HttpPost]
+        public async Task<IActionResult> ThemGiaoDich(decimal SoTien, int MaDanhMuc, DateTime NgayGiaoDich, string GhiChu)
         {
-            var userId = HttpContext.Session.GetInt32("UserId");
-            if (!userId.HasValue)
+            
+            int? userId = HttpContext.Session.GetInt32("UserId");
+        
+            if (userId == null)
             {
-                return RedirectToAction("Login", "Account");
+                return RedirectToAction("Login", "Account"); 
             }
-
+        
             try
             {
-                var danhSachGiaoDich = await _context.GiaoDich
-                    .Include(g => g.DanhMuc) 
-                    .Where(g => g.MaNguoiDung == userId.Value)
-                    .OrderByDescending(g => g.NgayGiaoDich)
-                    .ToListAsync();
-
-                var tongThu = danhSachGiaoDich.Where(g => g.DanhMuc != null && g.DanhMuc.LoaiDanhMuc == "Thu").Sum(g => g.SoTien);
-                var tongChi = danhSachGiaoDich.Where(g => g.DanhMuc != null && g.DanhMuc.LoaiDanhMuc == "Chi").Sum(g => g.SoTien);
-                var soDu = tongThu - tongChi;
-
-                ViewBag.TongThu = tongThu;
-                ViewBag.TongChi = tongChi;
-                ViewBag.SoDu = soDu;
-
-                return View(danhSachGiaoDich);
+                var giaoDichMoi = new Backend.Models.GiaoDich
+                {
+                    SoTien = SoTien,
+                    MaDanhMuc = MaDanhMuc,
+                    NgayGiaoDich = NgayGiaoDich,
+                    GhiChu = GhiChu,
+                    MaNguoiDung = userId.Value
+                };
+    
+                _context.GiaoDich.Add(giaoDichMoi);
+    
+                var danhMuc = await _context.DanhMuc.FindAsync(MaDanhMuc);
+                var nguoiDung = await _context.NguoiDung.FindAsync(userId.Value);
+        
+                if (nguoiDung != null && danhMuc != null)
+                {
+                    if (danhMuc.LoaiDanhMuc == "Thu" || danhMuc.LoaiDanhMuc == "Thu Nhập")
+                    {
+                        nguoiDung.SoDuTaiKhoan += SoTien;
+                    }
+                    else if (danhMuc.LoaiDanhMuc == "Chi" || danhMuc.LoaiDanhMuc == "Chi Tiêu")
+                    {
+                        nguoiDung.SoDuTaiKhoan -= SoTien; 
+                    }
+                }
+        
+                await _context.SaveChangesAsync();
+        
+                return RedirectToAction("Dashboard");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Lỗi khi tải lịch sử giao dịch");
-                ViewBag.TongThu = 0;
-                ViewBag.TongChi = 0;
-                ViewBag.SoDu = 0;
-                return View(new List<Backend.Models.GiaoDich>());
+                _logger.LogError(ex, "Lỗi khi thêm giao dịch mới");
+                return RedirectToAction("Dashboard");
             }
         }
+        public async Task<IActionResult> Transactions()
+{
+    var userId = HttpContext.Session.GetInt32("UserId");
+    if (!userId.HasValue)
+    {
+        return RedirectToAction("Login", "Account");
+    }
+
+    try
+    {
+        var danhSachGiaoDich = await _context.GiaoDich
+            .Include(g => g.DanhMuc) 
+            .Where(g => g.MaNguoiDung == userId.Value)
+            .OrderByDescending(g => g.NgayGiaoDich)
+            .ToListAsync();
+
+        var tongThu = danhSachGiaoDich.Where(g => g.DanhMuc != null && g.DanhMuc.LoaiDanhMuc == "Thu").Sum(g => g.SoTien);
+        var tongChi = danhSachGiaoDich.Where(g => g.DanhMuc != null && g.DanhMuc.LoaiDanhMuc == "Chi").Sum(g => g.SoTien);
+        var soDu = tongThu - tongChi;
+
+        ViewBag.TongThu = tongThu;
+        ViewBag.TongChi = tongChi;
+        ViewBag.SoDu = soDu;
+
+        return View(danhSachGiaoDich);
+    }
+    catch (Exception ex)
+    {
+        _logger.LogError(ex, "Lỗi khi tải lịch sử giao dịch");
+        ViewBag.TongThu = 0;
+        ViewBag.TongChi = 0;
+        ViewBag.SoDu = 0;
+        return View(new List<Backend.Models.GiaoDich>());
+    }
+}
 
         public async Task<IActionResult> Dashboard()
         {
@@ -82,47 +131,47 @@ namespace Frontend.Controllers
                 ViewBag.UserEmail = user.Email;
                 ViewBag.AccountBalance = user.SoDuTaiKhoan;
 
-                // Chi tiêu hôm nay
+                // Chi tiêu hôm nay (Tối ưu sang SumAsync)
                 var today = DateTime.Now.Date;
-                var todayExpense = _context.GiaoDich
+                var todayExpense = await _context.GiaoDich
                     .Where(g => g.MaNguoiDung == userId.Value && g.NgayGiaoDich.Date == today)
-                    .Sum(g => g.SoTien);
+                    .SumAsync(g => g.SoTien);
                 ViewBag.TodayExpense = todayExpense;
 
                 // Chi tiêu tháng này
                 var currentMonth = DateTime.Now;
                 var monthStart = new DateTime(currentMonth.Year, currentMonth.Month, 1);
                 var monthEnd = new DateTime(currentMonth.Year, currentMonth.Month, DateTime.DaysInMonth(currentMonth.Year, currentMonth.Month));
-                
-                var monthExpense = _context.GiaoDich
+
+                var monthExpense = await _context.GiaoDich
                     .Where(g => g.MaNguoiDung == userId.Value && 
                            g.NgayGiaoDich >= monthStart && 
                            g.NgayGiaoDich <= monthEnd)
-                    .Sum(g => g.SoTien);
+                    .SumAsync(g => g.SoTien);
                 ViewBag.MonthExpense = monthExpense;
 
                 // Ngân sách tháng
-                var monthBudget = _context.NganSach
+                var monthBudget = await _context.NganSach
                     .Where(b => b.MaNguoiDung == userId.Value && 
                            b.NgayBatDau <= monthEnd && 
                            b.NgayKetThuc >= monthStart)
-                    .Sum(b => b.SoTienHanMuc);
+                    .SumAsync(b => b.SoTienHanMuc);
                 ViewBag.MonthBudget = monthBudget;
 
                 // Tổng danh mục
-                var categoryCount = _context.DanhMuc
+                var categoryCount = await _context.DanhMuc
                     .Where(d => d.MaNguoiDung == userId.Value)
-                    .Count();
+                    .CountAsync();
                 ViewBag.CategoryCount = categoryCount;
 
                 // Tổng giao dịch
-                var transactionCount = _context.GiaoDich
+                var transactionCount = await _context.GiaoDich
                     .Where(g => g.MaNguoiDung == userId.Value)
-                    .Count();
+                    .CountAsync();
                 ViewBag.TransactionCount = transactionCount;
 
                 // Giao dịch gần đây (10 giao dịch mới nhất)
-                var recentTransactions = _context.GiaoDich
+                var recentTransactions = await _context.GiaoDich
                     .Where(g => g.MaNguoiDung == userId.Value)
                     .OrderByDescending(g => g.NgayGiaoDich)
                     .Take(10)
@@ -135,11 +184,11 @@ namespace Frontend.Controllers
                         CategoryName = g.DanhMuc != null ? g.DanhMuc.TenDanhMuc : "N/A",
                         Icon = g.DanhMuc != null ? g.DanhMuc.BieuTuong : ""
                     })
-                    .ToList();
+                    .ToListAsync();
                 ViewBag.RecentTransactions = recentTransactions;
 
                 // Chi tiêu theo danh mục (tháng này)
-                var expenseByCategory = _context.GiaoDich
+                var expenseByCategory = await _context.GiaoDich
                     .Where(g => g.MaNguoiDung == userId.Value && 
                            g.NgayGiaoDich >= monthStart && 
                            g.NgayGiaoDich <= monthEnd &&
@@ -153,11 +202,11 @@ namespace Frontend.Controllers
                         Count = g.Count()
                     })
                     .OrderByDescending(x => x.Total)
-                    .ToList();
+                    .ToListAsync();
                 ViewBag.ExpenseByCategory = expenseByCategory;
 
                 // Ngân sách theo danh mục
-                var budgetByCategory = _context.NganSach
+                var budgetByCategory = await _context.NganSach
                     .Where(b => b.MaNguoiDung == userId.Value && 
                            b.NgayBatDau <= monthEnd && 
                            b.NgayKetThuc >= monthStart &&
@@ -169,22 +218,31 @@ namespace Frontend.Controllers
                         Icon = b.Key.BieuTuong,
                         BudgetLimit = b.Sum(x => x.SoTienHanMuc),
                         Spent = _context.GiaoDich
-                            .Where(g => g.MaNguoiDung == userId.Value && 
-                                   g.MaDanhMuc == b.Key.MaDanhMuc &&
-                                   g.NgayGiaoDich >= monthStart && 
-                                   g.NgayGiaoDich <= monthEnd)
-                            .Sum(g => g.SoTien)
+                             .Where(g => g.MaNguoiDung == userId.Value && 
+                                    g.MaDanhMuc == b.Key.MaDanhMuc &&
+                                    g.NgayGiaoDich >= monthStart && 
+                                    g.NgayGiaoDich <= monthEnd)
+                             .Sum(g => g.SoTien)
                     })
-                    .ToList();
+                    .ToListAsync();
                 ViewBag.BudgetByCategory = budgetByCategory;
+
+
+                ViewBag.DanhSachDanhMuc = await _context.DanhMuc
+                    .Where(d => d.MaNguoiDung == userId.Value)
+                    .ToListAsync();
 
                 return View(user);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error loading dashboard: {Message}", ex.Message);
-                // Nếu có lỗi, vẫn load trang nhưng với dữ liệu mặc định
-                return View();
+                _logger.LogError(ex, "Lỗi khi tải dữ liệu Dashboard");
+                // Đảm bảo không bị crash giao diện nếu có lỗi xảy ra
+                ViewBag.RecentTransactions = new List<object>();
+                ViewBag.ExpenseByCategory = new List<object>();
+                ViewBag.BudgetByCategory = new List<object>();
+                ViewBag.DanhSachDanhMuc = new List<Backend.Models.DanhMuc>();
+                return View(new Backend.Models.NguoiDung());
             }
         }
     }
