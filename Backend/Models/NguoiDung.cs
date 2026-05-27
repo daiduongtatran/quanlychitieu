@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Backend.Models
 {
@@ -22,6 +23,9 @@ namespace Backend.Models
         public string HoTen { get; set; }
 
         public DateTime NgayTao { get; set; } = DateTime.Now;
+
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal SoDuTaiKhoan { get; set; } = 0;
 
         public ICollection<GiaoDich> GiaoDichs { get; set; }
     }

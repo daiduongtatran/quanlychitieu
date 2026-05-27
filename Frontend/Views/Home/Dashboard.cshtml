@@ -3,76 +3,292 @@
 @{
     ViewData["Title"] = "Trang chủ - SpendingSmart";
     Layout = "~/Views/Shared/_DashboardLayout.cshtml";
+
+    var recentTransactions = ViewBag.RecentTransactions ?? new List<dynamic>();
+    var expenseByCategory = ViewBag.ExpenseByCategory ?? new List<dynamic>();
+    var budgetByCategory = ViewBag.BudgetByCategory ?? new List<dynamic>();
+    decimal monthExpense = ViewBag.MonthExpense ?? 0m;
+    decimal monthBudget = ViewBag.MonthBudget ?? 0m;
 }
 
 <div class="page-header mb-4">
     <h1 class="page-title">Xin chào, <strong>@ViewBag.UserName</strong>! 👋</h1>
-    <p class="page-subtitle">Chào mừng bạn trở lại hệ thống quản lý chi tiêu của chúng tôi</p>
+    <p class="page-subtitle">@DateTime.Now.ToString("dddd, dd/MM/yyyy", System.Globalization.CultureInfo.GetCultureInfo("vi-VN"))</p>
 </div>
 
+<!-- Account Balance -->
+<div class="row mb-2">
+    <div class="col-md-12">
+        <div class="stat-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+            <div class="stat-icon">
+                <i class="bi bi-piggy-bank"></i>
+            </div>
+            <div class="stat-content">
+                <h5>Số dư tài khoản</h5>
+                <p class="stat-value">@(((decimal)(ViewBag.AccountBalance ?? 0)).ToString("N0")) VNĐ</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Top Stats -->
 <div class="row">
     <div class="col-md-3 mb-4">
-        <div class="stat-card">
-            <div class="stat-icon icon-expense">
+        <div class="stat-card icon-expense">
+            <div class="stat-icon">
                 <i class="bi bi-arrow-down-circle"></i>
             </div>
             <div class="stat-content">
                 <h5>Chi tiêu hôm nay</h5>
-                <p class="stat-value">0 VNĐ</p>
+                <p class="stat-value">@(ViewBag.TodayExpense == null ? "0" : ((decimal)ViewBag.TodayExpense).ToString("N0")) VNĐ</p>
             </div>
         </div>
     </div>
 
     <div class="col-md-3 mb-4">
-        <div class="stat-card">
-            <div class="stat-icon icon-budget">
+        <div class="stat-card icon-budget">
+            <div class="stat-icon">
                 <i class="bi bi-wallet2"></i>
             </div>
             <div class="stat-content">
-                <h5>Ngân sách tháng</h5>
-                <p class="stat-value">0 VNĐ</p>
+                <h5>Chi tiêu tháng</h5>
+                <p class="stat-value">@monthExpense.ToString("N0") VNĐ</p>
             </div>
         </div>
     </div>
 
     <div class="col-md-3 mb-4">
-        <div class="stat-card">
-            <div class="stat-icon icon-category">
+        <div class="stat-card icon-category">
+            <div class="stat-icon">
                 <i class="bi bi-tag-fill"></i>
             </div>
             <div class="stat-content">
-                <h5>Danh mục</h5>
-                <p class="stat-value">0</p>
+                <h5>Ngân sách tháng</h5>
+                <p class="stat-value">@monthBudget.ToString("N0") VNĐ</p>
             </div>
         </div>
     </div>
 
     <div class="col-md-3 mb-4">
-        <div class="stat-card">
-            <div class="stat-icon icon-transaction">
+        <div class="stat-card icon-transaction">
+            <div class="stat-icon">
                 <i class="bi bi-arrow-left-right"></i>
             </div>
             <div class="stat-content">
-                <h5>Giao dịch</h5>
-                <p class="stat-value">0</p>
+                <h5>Tổng giao dịch</h5>
+                <p class="stat-value">@ViewBag.TransactionCount</p>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Recent Transactions -->
-<div class="card mt-4">
-    <div class="card-header">
-        <h5 class="mb-0">Giao dịch gần đây</h5>
+<!-- Main Content -->
+<div class="row mt-4">
+    <!-- Recent Transactions -->
+    <div class="col-lg-8 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-clock-history"></i> Giao dịch gần đây
+                </h5>
+            </div>
+            <div class="card-body">
+                @if (recentTransactions.Count == 0)
+                {
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i> Chưa có giao dịch nào. Bắt đầu thêm giao dịch để quản lý chi tiêu của bạn.
+                    </div>
+                }
+                else
+                {
+                    <div class="transaction-list">
+                        @foreach (var transaction in recentTransactions)
+                        {
+                            <div class="transaction-item">
+                                <div class="transaction-info">
+                                    <div class="transaction-icon">
+                                        @if (!string.IsNullOrEmpty(transaction.BieuTuong))
+                                        {
+                                            <span>@Html.Raw(transaction.BieuTuong)</span>
+                                        }
+                                        else
+                                        {
+                                            <i class="bi bi-cash-flow"></i>
+                                        }
+                                    </div>
+                                    <div class="transaction-details">
+                                        <p class="transaction-category">@transaction.CategoryName</p>
+                                        <p class="transaction-note">@transaction.GhiChu</p>
+                                        <p class="transaction-date">@transaction.NgayGiaoDich.ToString("dd/MM/yyyy HH:mm")</p>
+                                    </div>
+                                </div>
+                                <div class="transaction-amount">
+                                    <p class="amount">-@(((decimal)transaction.SoTien).ToString("N0")) VNĐ</p>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
     </div>
-    <div class="card-body">
-        <div class="alert alert-info">
-            <i class="bi bi-info-circle"></i> Chưa có giao dịch nào. Bắt đầu thêm giao dịch để quản lý chi tiêu của bạn.
+
+    <!-- Budget Overview -->
+    <div class="col-lg-4 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-pie-chart"></i> Thống kê chi tiêu
+                </h5>
+            </div>
+            <div class="card-body">
+                @if (monthBudget > 0)
+                {
+                    <div class="budget-status">
+                        <div class="budget-progress">
+                            <div class="progress-info">
+                                <span class="spent-label">Đã chi tiêu</span>
+                                <span class="spent-value">@monthExpense.ToString("N0") VNĐ</span>
+                            </div>
+                            <div class="progress" style="height: 8px;">
+                                <div class="progress-bar @(monthExpense > monthBudget ? "bg-danger" : "bg-success")"
+                                     role="progressbar"
+                                     style="width: @((Math.Min((monthExpense / monthBudget * 100), 100)).ToString("F0"))%"
+                                     aria-valuenow="@monthExpense" aria-valuemin="0" aria-valuemax="@monthBudget">
+                                </div>
+                            </div>
+                            <div class="progress-info">
+                                <span>Ngân sách: @monthBudget.ToString("N0") VNĐ</span>
+                                <span class="remaining @(monthExpense > monthBudget ? "text-danger" : "text-success")">
+                                    @if (monthExpense > monthBudget)
+                                    {
+                                        <span>Vượt: @((monthExpense - monthBudget).ToString("N0")) VNĐ</span>
+                                    }
+                                    else
+                                    {
+                                        <span>Còn lại: @((monthBudget - monthExpense).ToString("N0")) VNĐ</span>
+                                    }
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle"></i> Bạn chưa thiết lập ngân sách cho tháng này
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Expense by Category -->
+<div class="row mt-4">
+    <div class="col-lg-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-bar-chart"></i> Chi tiêu theo danh mục (tháng này)
+                </h5>
+            </div>
+            <div class="card-body">
+                @if (expenseByCategory.Count == 0)
+                {
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i> Chưa có chi tiêu nào
+                    </div>
+                }
+                else
+                {
+                    <div class="category-list">
+                        @foreach (var category in expenseByCategory)
+                        {
+                            <div class="category-item">
+                                <div class="category-info">
+                                    <span class="category-icon">
+                                        @if (!string.IsNullOrEmpty(category.Icon))
+                                        {
+                                            @Html.Raw(category.Icon)
+                                        }
+                                        else
+                                        {
+                                            <i class="bi bi-folder"></i>
+                                        }
+                                    </span>
+                                    <div class="category-details">
+                                        <p class="category-name">@category.Category</p>
+                                        <p class="category-count">@category.Count giao dịch</p>
+                                    </div>
+                                </div>
+                                <p class="category-amount">@(((decimal)category.Total).ToString("N0")) VNĐ</p>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Budget Status by Category -->
+    <div class="col-lg-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-target"></i> Trạng thái ngân sách
+                </h5>
+            </div>
+            <div class="card-body">
+                @if (budgetByCategory.Count == 0)
+                {
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i> Chưa có ngân sách nào
+                    </div>
+                }
+                else
+                {
+                    <div class="category-list">
+                        @foreach (var budget in budgetByCategory)
+                        {
+                            decimal spent = budget.Spent ?? 0m;
+                            decimal limit = budget.BudgetLimit ?? 0m;
+                            double percentage = limit > 0 ? (double)(spent / limit * 100) : 0;
+                            string statusClass = spent > limit ? "danger" : (spent > limit * 0.8m ? "warning" : "success");
+
+                            <div class="category-item">
+                                <div class="category-info">
+                                    <span class="category-icon">
+                                        @if (!string.IsNullOrEmpty(budget.Icon))
+                                        {
+                                            @Html.Raw(budget.Icon)
+                                        }
+                                        else
+                                        {
+                                            <i class="bi bi-folder"></i>
+                                        }
+                                    </span>
+                                    <div class="category-details">
+                                        <p class="category-name">@budget.Category</p>
+                                        <p class="category-budget">@spent.ToString("N0") / @limit.ToString("N0") VNĐ</p>
+                                    </div>
+                                </div>
+                                <div class="budget-mini-progress">
+                                    <div class="progress" style="height: 4px;">
+                                        <div class="progress-bar bg-@statusClass" style="width: @((Math.Min(percentage, 100)).ToString("F0"))%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
         </div>
     </div>
 </div>
 
 <style>
+/* Page Header */
 .page-header {
     padding: 20px 0;
     border-bottom: 1px solid #e0e0e0;
@@ -90,6 +306,7 @@
     font-size: 14px;
 }
 
+/* Stat Cards */
 .stat-card {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     border-radius: 10px;
@@ -99,7 +316,7 @@
     align-items: center;
     gap: 15px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    transition: transform 0.3s ease;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .stat-card:hover {
@@ -126,6 +343,9 @@
 .stat-icon {
     font-size: 32px;
     min-width: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .stat-content h5 {
@@ -133,6 +353,7 @@
     font-weight: 600;
     opacity: 0.9;
     margin-bottom: 5px;
+    text-transform: uppercase;
 }
 
 .stat-value {
@@ -141,10 +362,12 @@
     margin: 0;
 }
 
+/* Cards */
 .card {
     border: none;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     border-radius: 10px;
+    margin-bottom: 20px;
 }
 
 .card-header {
@@ -156,5 +379,241 @@
 
 .card-header h5 {
     color: #2c3e50;
+    font-weight: 600;
+}
+
+.card-body {
+    padding: 20px;
+}
+
+/* Transactions List */
+.transaction-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.transaction-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    border-left: 4px solid #4facfe;
+    transition: all 0.3s ease;
+}
+
+.transaction-item:hover {
+    background-color: #e8f4ff;
+    transform: translateX(5px);
+}
+
+.transaction-info {
+    display: flex;
+    gap: 12px;
+    flex: 1;
+}
+
+.transaction-icon {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 18px;
+    min-width: 40px;
+}
+
+.transaction-details {
+    flex: 1;
+}
+
+.transaction-category {
+    font-weight: 600;
+    color: #2c3e50;
+    margin: 0 0 3px 0;
+    font-size: 14px;
+}
+
+.transaction-note {
+    font-size: 12px;
+    color: #7f8c8d;
+    margin: 0 0 3px 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.transaction-date {
+    font-size: 11px;
+    color: #95a5a6;
+    margin: 0;
+}
+
+.transaction-amount {
+    text-align: right;
+}
+
+.amount {
+    font-weight: 700;
+    color: #f5576c;
+    margin: 0;
+    font-size: 14px;
+}
+
+/* Budget Status */
+.budget-status {
+    padding: 10px 0;
+}
+
+.budget-progress {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.progress-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 13px;
+}
+
+.spent-label {
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.spent-value {
+    font-weight: 700;
+    color: #f5576c;
+}
+
+.remaining {
+    font-weight: 600;
+}
+
+.remaining.text-danger {
+    color: #e74c3c;
+}
+
+.remaining.text-success {
+    color: #27ae60;
+}
+
+/* Category List */
+.category-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.category-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.category-item:hover {
+    background-color: #f0f0f0;
+    transform: translateX(5px);
+}
+
+.category-info {
+    display: flex;
+    gap: 12px;
+    flex: 1;
+    align-items: center;
+}
+
+.category-icon {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 18px;
+    min-width: 40px;
+}
+
+.category-details {
+    flex: 1;
+}
+
+.category-name {
+    font-weight: 600;
+    color: #2c3e50;
+    margin: 0 0 3px 0;
+    font-size: 14px;
+}
+
+.category-count {
+    font-size: 12px;
+    color: #7f8c8d;
+    margin: 0;
+}
+
+.category-budget {
+    font-size: 12px;
+    color: #7f8c8d;
+    margin: 0;
+}
+
+.category-amount {
+    font-weight: 700;
+    color: #2c3e50;
+    margin: 0;
+    font-size: 14px;
+    white-space: nowrap;
+    margin-left: 10px;
+}
+
+.budget-mini-progress {
+    width: 100%;
+    margin-top: 5px;
+}
+
+/* Alert styles */
+.alert {
+    border: none;
+    border-radius: 8px;
+    padding: 15px;
+}
+
+.alert-info {
+    background-color: #e3f2fd;
+    color: #1565c0;
+}
+
+.alert-warning {
+    background-color: #fff3e0;
+    color: #e65100;
+}
+
+/* Responsive */
+@@media (max-width: 768px) {
+    .stat-card {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .stat-icon {
+        font-size: 28px;
+    }
+
+    .page-title {
+        font-size: 22px;
+    }
 }
 </style>
