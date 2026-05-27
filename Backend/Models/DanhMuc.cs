@@ -26,6 +26,7 @@ namespace Backend.Models
         public string BieuTuong { get; set; }
 
         public int? MaNguoiDung { get; set; }
+        [ForeignKey("MaNguoiDung")]
         public NguoiDung NguoiDung { get; set; }
 
         public ICollection<GiaoDich> GiaoDich { get; set; }

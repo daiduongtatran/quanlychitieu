@@ -59,7 +59,7 @@
 </div>
 
 <div class="modal fade" id="createModal" tabindex="-1" aria-labelledby="createModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <form asp-action="Create" method="post">
                 @Html.AntiForgeryToken()
@@ -72,16 +72,28 @@
                         <label class="form-label">Tên danh mục</label>
                         <input name="TenDanhMuc" class="form-control" placeholder="Ví dụ: Ăn uống, Di chuyển, Mua sắm..." required />
                     </div>
+                    
                     <div class="mb-3">
-                        <label class="form-label">Biểu tượng (Class của Bootstrap Icons hoặc FontAwesome)</label>
-                        <input name="BieuTuong" class="form-control" placeholder="Ví dụ: bi bi-cart, bi bi-house, fa-utensils" />
-                        <small class="text-muted">Bạn có thể sử dụng các class biểu tượng hệ thống đang hỗ trợ.</small>
+                        <label class="form-label">Chọn biểu tượng</label>
+                        <div class="icon-preview-container mb-2">
+                            <div class="border rounded p-3 text-center bg-light" id="iconPreview">
+                                <i class="bi bi-smiley" id="previewIcon" style="font-size: 2rem; color: #0d6efd;"></i>
+                                <p class="mt-2 mb-0"><small id="previewText">bi bi-smiley</small></p>
+                            </div>
+                        </div>
+                        <button type="button" class="btn btn-outline-primary w-100" data-bs-toggle="modal" data-bs-target="#iconPickerModal">
+                            <i class="bi bi-palette"></i> Chọn biểu tượng
+                        </button>
+                        <input type="hidden" name="BieuTuong" id="BieuTuongInput" value="bi bi-smiley" required />
+                    </div>
+
+                    <div class="mb-3">
                         <label class="form-label">Loại danh mục</label>
-                    <select name="LoaiDanhMuc" class="form-select" required>
-                        <option value="">-- Chọn phân loại --</option>
-                        <option value="Chi">Chi tiêu</option>
-                        <option value="Thu">Thu nhập</option>
-                    </select>
+                        <select name="LoaiDanhMuc" class="form-select" required>
+                            <option value="">-- Chọn phân loại --</option>
+                            <option value="Chi">Chi tiêu</option>
+                            <option value="Thu">Thu nhập</option>
+                        </select>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -92,3 +104,167 @@
         </div>
     </div>
 </div>
+
+<!-- Icon Picker Modal -->
+<div class="modal fade" id="iconPickerModal" tabindex="-1" aria-labelledby="iconPickerLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="iconPickerLabel">Chọn biểu tượng</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <input type="text" class="form-control" id="iconSearch" placeholder="Tìm kiếm biểu tượng..." />
+                </div>
+                <div id="iconGrid" class="icon-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(50px, 1fr)); gap: 10px;">
+                    <!-- Icons will be populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.icon-grid .icon-item {
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #dee2e6;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 1.8rem;
+    user-select: none;
+}
+
+.icon-grid .icon-item:hover {
+    border-color: #0d6efd;
+    background-color: #e7f1ff;
+    transform: scale(1.05);
+}
+
+.icon-grid .icon-item.selected {
+    border-color: #0d6efd;
+    background-color: #0d6efd;
+    color: white;
+}
+
+#iconPreview {
+    transition: all 0.3s ease;
+}
+</style>
+
+<script>
+    // Danh sách các biểu tượng phổ biến cho danh mục chi tiêu/thu nhập
+    const availableIcons = [
+        // Chi tiêu - Ăn uống
+        { icon: 'bi bi-cup-straw', name: 'Nước uống' },
+        { icon: 'bi bi-egg-fried', name: 'Ăn sáng' },
+        { icon: 'bi bi-cup-hot', name: 'Cà phê' },
+        { icon: 'bi bi-basket', name: 'Thực phẩm' },
+        
+        // Chi tiêu - Di chuyển
+        { icon: 'bi bi-car-front', name: 'Xe hơi' },
+        { icon: 'bi bi-bicycle', name: 'Xe đạp' },
+        { icon: 'bi bi-bus-front', name: 'Xe buýt' },
+        { icon: 'bi bi-airplane', name: 'Máy bay' },
+        
+        // Chi tiêu - Mua sắm
+        { icon: 'bi bi-bag-check', name: 'Quần áo' },
+        { icon: 'bi bi-cart-check', name: 'Mua sắm' },
+        { icon: 'bi bi-shop', name: 'Cửa hàng' },
+        { icon: 'bi bi-gift', name: 'Quà tặng' },
+        
+        // Chi tiêu - Sức khỏe
+        { icon: 'bi bi-hospital', name: 'Bệnh viện' },
+        { icon: 'bi bi-capsule', name: 'Thuốc' },
+        { icon: 'bi bi-heart-pulse', name: 'Sức khỏe' },
+        { icon: 'bi bi-eyeglasses', name: 'Kính mắt' },
+        
+        // Chi tiêu - Giáo dục
+        { icon: 'bi bi-book', name: 'Sách vở' },
+        { icon: 'bi bi-mortarboard', name: 'Học tập' },
+        { icon: 'bi bi-pencil-square', name: 'Bài tập' },
+        { icon: 'bi bi-laptop', name: 'Máy tính' },
+        
+        // Chi tiêu - Nhà cửa
+        { icon: 'bi bi-house', name: 'Nhà ở' },
+        { icon: 'bi bi-lightbulb', name: 'Điện' },
+        { icon: 'bi bi-droplet', name: 'Nước' },
+        { icon: 'bi bi-tools', name: 'Sửa chữa' },
+        
+        // Thu nhập
+        { icon: 'bi bi-briefcase', name: 'Lương' },
+        { icon: 'bi bi-coin', name: 'Tiền xu' },
+        { icon: 'bi bi-graph-up', name: 'Đầu tư' },
+        { icon: 'bi bi-piggy-bank', name: 'Tiết kiệm' },
+        { icon: 'bi bi-cash-coin', name: 'Tiền mặt' },
+        
+        // Khác
+        { icon: 'bi bi-question-circle', name: 'Khác' },
+        { icon: 'bi bi-star', name: 'Yêu thích' },
+        { icon: 'bi bi-heart', name: 'Yêu thương' },
+        { icon: 'bi bi-emoji-smile', name: 'Vui vẻ' },
+    ];
+
+    let currentIcons = availableIcons;
+
+    function initializeIconPicker() {
+        renderIcons(availableIcons);
+
+        // Icon search functionality
+        document.getElementById('iconSearch').addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            currentIcons = availableIcons.filter(item => 
+                item.name.toLowerCase().includes(searchTerm) || 
+                item.icon.toLowerCase().includes(searchTerm)
+            );
+            renderIcons(currentIcons);
+        });
+    }
+
+    function renderIcons(icons) {
+        const grid = document.getElementById('iconGrid');
+        const currentValue = document.getElementById('BieuTuongInput').value;
+        
+        grid.innerHTML = '';
+        icons.forEach(item => {
+            const div = document.createElement('div');
+            div.className = 'icon-item' + (item.icon === currentValue ? ' selected' : '');
+            div.title = item.name;
+            div.innerHTML = '<i class="' + item.icon + '"></i>';
+            
+            div.addEventListener('click', function() {
+                selectIcon(item.icon);
+            });
+            
+            grid.appendChild(div);
+        });
+    }
+
+    function selectIcon(iconClass) {
+        // Update hidden input
+        document.getElementById('BieuTuongInput').value = iconClass;
+        
+        // Update preview
+        const previewIcon = document.getElementById('previewIcon');
+        const previewText = document.getElementById('previewText');
+        previewIcon.className = iconClass;
+        previewText.textContent = iconClass;
+        
+        // Update selected state
+        document.querySelectorAll('.icon-item').forEach(item => {
+            item.classList.remove('selected');
+            if (item.querySelector('i').className === iconClass) {
+                item.classList.add('selected');
+            }
+        });
+    }
+
+    // Initialize when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        initializeIconPicker();
+    });
+</script>
