@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Backend.Data;
 using Backend.Services;
+using Microsoft.EntityFrameworkCore;
 
 namespace Frontend.Controllers
 {
@@ -24,10 +25,41 @@ namespace Frontend.Controllers
 
             return View();
         }
-        public IActionResult Transactions()
-    {
-        return View();
-    }
+        public async Task<IActionResult> Transactions()
+        {
+            var userId = HttpContext.Session.GetInt32("UserId");
+            if (!userId.HasValue)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            try
+            {
+                var danhSachGiaoDich = await _context.GiaoDich
+                    .Include(g => g.DanhMuc) 
+                    .Where(g => g.MaNguoiDung == userId.Value)
+                    .OrderByDescending(g => g.NgayGiaoDich)
+                    .ToListAsync();
+
+                var tongThu = danhSachGiaoDich.Where(g => g.DanhMuc != null && g.DanhMuc.LoaiDanhMuc == "Thu").Sum(g => g.SoTien);
+                var tongChi = danhSachGiaoDich.Where(g => g.DanhMuc != null && g.DanhMuc.LoaiDanhMuc == "Chi").Sum(g => g.SoTien);
+                var soDu = tongThu - tongChi;
+
+                ViewBag.TongThu = tongThu;
+                ViewBag.TongChi = tongChi;
+                ViewBag.SoDu = soDu;
+
+                return View(danhSachGiaoDich);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi khi tải lịch sử giao dịch");
+                ViewBag.TongThu = 0;
+                ViewBag.TongChi = 0;
+                ViewBag.SoDu = 0;
+                return View(new List<Backend.Models.GiaoDich>());
+            }
+        }
 
         public async Task<IActionResult> Dashboard()
         {

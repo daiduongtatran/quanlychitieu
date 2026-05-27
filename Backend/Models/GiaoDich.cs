@@ -19,10 +19,15 @@ namespace Backend.Models
 
         [Required]
         public int MaDanhMuc { get; set; }
+
+        [ForeignKey("MaDanhMuc")]
         public DanhMuc DanhMuc { get; set; }
 
         [Required]
+        
         public int MaNguoiDung { get; set; }
+
+        [ForeignKey("MaNguoiDung")]
         public NguoiDung NguoiDung { get; set; }
     }
 }
