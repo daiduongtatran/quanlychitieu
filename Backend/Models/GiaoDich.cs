@@ -13,7 +13,7 @@ namespace Backend.Models
         [Column(TypeName = "decimal(18,2)")]
         public decimal SoTien { get; set; }
 
-        public string GhiChu { get; set; }
+        public string? GhiChu { get; set; }
 
         public DateTime NgayGiaoDich { get; set; } = DateTime.Now;
 

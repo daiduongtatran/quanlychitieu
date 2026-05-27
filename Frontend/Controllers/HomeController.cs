@@ -181,8 +181,8 @@ namespace Frontend.Controllers
                         g.SoTien,
                         g.GhiChu,
                         g.NgayGiaoDich,
-                        CategoryName = g.DanhMuc != null ? g.DanhMuc.TenDanhMuc : "N/A",
-                        Icon = g.DanhMuc != null ? g.DanhMuc.BieuTuong : ""
+                        TenDanhMuc = g.DanhMuc != null ? g.DanhMuc.TenDanhMuc : "N/A",
+                        BieuTuong = g.DanhMuc != null ? g.DanhMuc.BieuTuong : ""
                     })
                     .ToListAsync();
                 ViewBag.RecentTransactions = recentTransactions;
