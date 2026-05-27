@@ -32,7 +32,7 @@
                         <tr>
                             <td>
                                 <span class="badge bg-light text-dark p-2">
-                                    <i class="@item.BieuTuong"></i> @item.BieuTuong
+                                    <i class="@item.BieuTuong"></i>
                                 </span>
                             </td>
                             <td><strong>@item.TenDanhMuc</strong></td>
@@ -261,10 +261,43 @@
                 item.classList.add('selected');
             }
         });
+        
+        // Close icon picker modal and return to create modal
+        const iconPickerModalEl = document.getElementById('iconPickerModal');
+        const createModalEl = document.getElementById('createModal');
+        
+        const iconPickerModal = bootstrap.Modal.getInstance(iconPickerModalEl);
+        if (iconPickerModal) {
+            iconPickerModal.hide();
+            
+            // Re-show create modal backdrop and focus when icon picker closes
+            iconPickerModalEl.addEventListener('hidden.bs.modal', function handler() {
+                // Restore create modal backdrop
+                document.body.classList.add('modal-open');
+                const backdrop = document.querySelector('.modal-backdrop');
+                if (backdrop) {
+                    backdrop.style.display = 'block';
+                }
+                // Focus on name input to help user continue
+                const nameInput = createModalEl.querySelector('input[name="TenDanhMuc"]');
+                if (nameInput) {
+                    setTimeout(() => nameInput.focus(), 100);
+                }
+                // Remove listener to avoid duplicate calls
+                iconPickerModalEl.removeEventListener('hidden.bs.modal', handler);
+            });
+        }
     }
 
     // Initialize when page loads
     document.addEventListener('DOMContentLoaded', function() {
         initializeIconPicker();
+        
+        // Handle nested modal backdrop properly
+        const iconPickerModalEl = document.getElementById('iconPickerModal');
+        iconPickerModalEl.addEventListener('show.bs.modal', function() {
+            // Reduce backdrop opacity for nested modal
+            document.querySelector('.modal-backdrop')?.style.setProperty('opacity', '0.3', 'important');
+        });
     });
 </script>
