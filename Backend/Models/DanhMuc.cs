@@ -14,7 +14,7 @@ namespace Backend.Models
         [Required(ErrorMessage = "Vui lòng nhập tên danh mục")]
         [StringLength(100, ErrorMessage = "Tên danh mục không được vượt quá 100 ký tự")]
         [Display(Name = "Tên danh mục")]
-        public string TenDanhMuc { get; set; }
+        public string? TenDanhMuc { get; set; }
         
         [Required(ErrorMessage = "Vui lòng chọn loại danh mục")]
         [StringLength(50)]
@@ -23,7 +23,7 @@ namespace Backend.Models
 
         [Display(Name = "Biểu tượng")]
         [StringLength(50, ErrorMessage = "Biểu tượng không được vượt quá 50 ký tự")]
-        public string BieuTuong { get; set; }
+        public string? BieuTuong { get; set; }
 
         public int? MaNguoiDung { get; set; }
         [ForeignKey("MaNguoiDung")]
