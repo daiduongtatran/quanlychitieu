@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Backend.Data;
 using Backend.Services;
 using Microsoft.EntityFrameworkCore;
+using Backend.Models;
 
 namespace Frontend.Controllers
 {
@@ -24,6 +25,36 @@ namespace Frontend.Controllers
             ViewBag.Status = isConnected ? "Kết nối Database thành công!" : "Kết nối Database thất bại!";
 
             return View();
+        }
+                [HttpPost]
+        public async Task<IActionResult> ThemNganSach(int MaDanhMuc, decimal SoTienHanMuc, DateTime NgayBatDau, DateTime NgayKetThuc)
+        {
+            int? userId = HttpContext.Session.GetInt32("UserId");
+            if (userId == null)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            try
+            {
+                var nganSach = new NganSach
+                {
+                    MaNguoiDung = userId.Value,
+                    MaDanhMuc = MaDanhMuc,
+                    SoTienHanMuc = SoTienHanMuc,
+                    NgayBatDau = NgayBatDau,
+                    NgayKetThuc = NgayKetThuc
+                };
+
+                _context.NganSach.Add(nganSach);
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi xảy ra khi lưu ngân sách mới.");
+            }
+
+            return RedirectToAction("Dashboard"); 
         }
         [HttpPost] 
         public async Task<IActionResult> ThemGiaoDich(

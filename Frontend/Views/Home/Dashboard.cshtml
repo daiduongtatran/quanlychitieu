@@ -198,7 +198,8 @@
                 else
                 {
                     <div class="alert alert-warning">
-                        <i class="bi bi-exclamation-triangle"></i> Bạn chưa thiết lập ngân sách cho tháng này
+                        <i class="bi bi-exclamation-triangle"></i> Bạn chưa thiết lập ngân sách cho tháng này. Hãy 
+                        <a href="#" class="text-decoration-underline fw-bold text-warning-emphasis" data-bs-toggle="modal" data-bs-target="#nganSachModal">thiết lập</a> ngay!
                     </div>
                 }
             </div>
@@ -374,6 +375,64 @@
                     <button type="submit" class="btn btn-success">Lưu giao dịch</button>
                 </div>
             </form>
+        </div>
+    </div>
+    <div class="modal fade" id="nganSachModal" tabindex="-1" aria-labelledby="nganSachModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-warning text-dark">
+                    <h5 class="modal-title" id="nganSachModalLabel">
+                        <i class="bi bi-wallet2 me-2"></i>Thiết lập ngân sách tháng mới
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <style>
+                    #nganSachModal {
+                        z-index: 1060 !important; /* Ép modal nổi lên trên cùng */
+                    }
+                    .modal-backdrop {
+                        z-index: 1050 !important; /* Đảm bảo lớp nền đen nằm ngay dưới modal */
+                    }
+                </style>
+                <form asp-controller="Home" asp-action="ThemNganSach" method="post">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Áp dụng cho danh mục</label>
+                            <select name="MaDanhMuc" class="form-select" required>
+                                <option value="">-- Chọn danh mục chi tiêu --</option>
+                                @if (ViewBag.DanhMucList != null)
+                                {
+                                    foreach (var dm in ViewBag.DanhMucList)
+                                    {
+                                        <option value="@dm.MaDanhMuc">@dm.BieuTuong @dm.TenDanhMuc</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Số tiền hạn mức tối đa (đ)</label>
+                            <input type="number" name="SoTienHanMuc" class="form-control" placeholder="Ví dụ: 2000000" min="1000" required />
+                        </div>
+
+                        <div class="row">
+                            <div class="col-6 mb-3">
+                                <label class="form-label fw-bold">Từ ngày</label>
+                                <input type="date" name="NgayBatDau" class="form-control" value="@DateTime.Now.ToString("yyyy-MM-01")" required />
+                            </div>
+                            <div class="col-6 mb-3">
+                                <label class="form-label fw-bold">Đến ngày</label>
+                                <input type="date" name="NgayKetThuc" class="form-control" value="@(new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1).AddMonths(1).AddDays(-1).ToString("yyyy-MM-dd"))" required />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy bỏ</button>
+                        <button type="submit" class="btn btn-warning fw-bold text-dark">Lưu cài đặt</button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
     <script>
