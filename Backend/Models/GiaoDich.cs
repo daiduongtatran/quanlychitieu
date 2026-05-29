@@ -29,5 +29,8 @@ namespace Backend.Models
 
         [ForeignKey("MaNguoiDung")]
         public NguoiDung NguoiDung { get; set; }
+        public bool IsDinhKy { get; set; }
+        public string? TanSuat { get; set; }      
+        public DateTime? NgayKetThuc { get; set; } 
     }
 }

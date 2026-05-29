@@ -25,17 +25,24 @@ namespace Frontend.Controllers
 
             return View();
         }
-        [HttpPost]
-        public async Task<IActionResult> ThemGiaoDich(decimal SoTien, int MaDanhMuc, DateTime NgayGiaoDich, string GhiChu)
+        [HttpPost] 
+        public async Task<IActionResult> ThemGiaoDich(
+            decimal SoTien, 
+            int MaDanhMuc, 
+            DateTime NgayGiaoDich, 
+            string GhiChu,
+            bool IsDinhKy,         
+            string TanSuat,        
+            DateTime? NgayKetThuc  
+        )
         {
-            
             int? userId = HttpContext.Session.GetInt32("UserId");
-        
+
             if (userId == null)
             {
                 return RedirectToAction("Login", "Account"); 
             }
-        
+
             try
             {
                 var giaoDichMoi = new Backend.Models.GiaoDich
@@ -44,14 +51,18 @@ namespace Frontend.Controllers
                     MaDanhMuc = MaDanhMuc,
                     NgayGiaoDich = NgayGiaoDich,
                     GhiChu = GhiChu,
-                    MaNguoiDung = userId.Value
+                    MaNguoiDung = userId.Value,
+                    
+                    IsDinhKy = IsDinhKy,
+                    TanSuat = IsDinhKy ? TanSuat : null, 
+                    NgayKetThuc = IsDinhKy ? NgayKetThuc : null
                 };
-    
+
                 _context.GiaoDich.Add(giaoDichMoi);
-    
+
                 var danhMuc = await _context.DanhMuc.FindAsync(MaDanhMuc);
                 var nguoiDung = await _context.NguoiDung.FindAsync(userId.Value);
-        
+
                 if (nguoiDung != null && danhMuc != null)
                 {
                     if (danhMuc.LoaiDanhMuc == "Thu" || danhMuc.LoaiDanhMuc == "Thu Nhập")
@@ -63,9 +74,9 @@ namespace Frontend.Controllers
                         nguoiDung.SoDuTaiKhoan -= SoTien; 
                     }
                 }
-        
+
                 await _context.SaveChangesAsync();
-        
+
                 return RedirectToAction("Dashboard");
             }
             catch (Exception ex)
@@ -158,19 +169,16 @@ namespace Frontend.Controllers
                     .SumAsync(b => b.SoTienHanMuc);
                 ViewBag.MonthBudget = monthBudget;
 
-                // Tổng danh mục
                 var categoryCount = await _context.DanhMuc
                     .Where(d => d.MaNguoiDung == userId.Value)
                     .CountAsync();
                 ViewBag.CategoryCount = categoryCount;
 
-                // Tổng giao dịch
                 var transactionCount = await _context.GiaoDich
                     .Where(g => g.MaNguoiDung == userId.Value)
                     .CountAsync();
                 ViewBag.TransactionCount = transactionCount;
 
-                // Giao dịch gần đây (10 giao dịch mới nhất)
                 var recentTransactions = await _context.GiaoDich
                     .Where(g => g.MaNguoiDung == userId.Value)
                     .OrderByDescending(g => g.NgayGiaoDich)
@@ -187,7 +195,6 @@ namespace Frontend.Controllers
                     .ToListAsync();
                 ViewBag.RecentTransactions = recentTransactions;
 
-                // Chi tiêu theo danh mục (tháng này)
                 var expenseByCategory = await _context.GiaoDich
                     .Where(g => g.MaNguoiDung == userId.Value && 
                            g.NgayGiaoDich >= monthStart && 
@@ -205,7 +212,6 @@ namespace Frontend.Controllers
                     .ToListAsync();
                 ViewBag.ExpenseByCategory = expenseByCategory;
 
-                // Ngân sách theo danh mục
                 var budgetByCategory = await _context.NganSach
                     .Where(b => b.MaNguoiDung == userId.Value && 
                            b.NgayBatDau <= monthEnd && 

@@ -70,16 +70,34 @@
     </div>
 
     <div class="col-md-3 mb-4">
-        <div class="stat-card icon-transaction">
-            <div class="stat-icon">
-                <i class="bi bi-arrow-left-right"></i>
+        <a asp-controller="Home" asp-action="Transactions" class="text-reset text-decoration-none">
+            <div class="stat-card icon-transaction" style="cursor: pointer; transition: all 0.2s ease;" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='translateY(0)'">
+                <div class="stat-icon">
+                    <i class="bi bi-arrow-left-right"></i>
+                </div>
+                <div class="stat-content">
+                    <h5>Tổng giao dịch</h5>
+                    <p class="stat-value">@ViewBag.TransactionCount</p>
+                </div>
             </div>
-            <div class="stat-content">
-                <h5>Tổng giao dịch</h5>
-                <p class="stat-value">@ViewBag.TransactionCount</p>
+        </a>
+    </div>
+    
+    <div class="col-md-3 mb-4">
+        <div class="stat-card quick-action-card h-100" 
+             data-bs-toggle="modal" 
+             data-bs-target="#modalThemGiaoDich" 
+             style="cursor: pointer;">
+            <div class="stat-icon-action">
+                <i class="bi bi-plus-circle-fill"></i>
+            </div>
+            <div class="stat-content text-center w-100">
+                <h5 class="text-success fw-bold m-0">Thêm giao dịch</h5>
+                <small class="text-muted">Nhập khoản chi mới</small>
             </div>
         </div>
     </div>
+</div>
 </div>
 
 <!-- Main Content -->
@@ -324,7 +342,28 @@
                         <label class="form-label fw-bold">Ngày giao dịch</label>
                         <input type="date" name="NgayGiaoDich" class="form-control" value="@DateTime.Now.ToString("yyyy-MM-dd")" required />
                     </div>
-
+                    <div class="mb-3">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="isDinhKy" name="IsDinhKy" value="true">
+                            <label class="form-check-label fw-bold" for="isDinhKy">🔄 Giao dịch định kỳ</label>
+                        </div>
+    
+                        <div id="khuVucDinhKy" class="d-none p-3 border rounded bg-light mt-2 animate__animated animate__fadeIn">
+                            <div class="mb-2">
+                                <label class="form-label small fw-bold text-secondary">Tần suất lặp lại</label>
+                                <select name="TanSuat" class="form-select form-select-sm">
+                                    <option value="HangNgay">Hàng ngày</option>
+                                    <option value="HangTuan">Hàng tuần</option>
+                                    <option value="HangThang" selected>Hàng tháng</option>
+                                    <option value="HangNam">Hàng năm</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="form-label small fw-bold text-secondary">Ngày kết thúc lặp (Không bắt buộc)</label>
+                                <input type="date" name="NgayKetThuc" class="form-control form-control-sm" />
+                            </div>
+                        </div>
+                    </div>
                     <div class="mb-3">
                         <label class="form-label fw-bold">Ghi chú / Mô tả</label>
                         <textarea name="GhiChu" class="form-control" rows="2" placeholder="Ví dụ: Mua cơm trưa..."></textarea>
@@ -337,6 +376,22 @@
             </form>
         </div>
     </div>
+    <script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const checkboxDinhKy = document.getElementById("isDinhKy");
+        const khuVucDinhKy = document.getElementById("khuVucDinhKy");
+
+        if (checkboxDinhKy && khuVucDinhKy) {
+            checkboxDinhKy.addEventListener("change", function () {
+                if (this.checked) {
+                    khuVucDinhKy.classList.remove("d-none");
+                } else {
+                    khuVucDinhKy.classList.add("d-none");
+                }
+            });
+        }
+    });
+</script>
 </div>
 <style>
 /* Page Header */
