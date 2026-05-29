@@ -67,6 +67,9 @@ namespace Backend.Services
                 _context.NguoiDung.Add(newUser);
                 await _context.SaveChangesAsync();
 
+                // Tạo các danh mục mặc định cho người dùng mới
+                await CreateDefaultCategoriesAsync(newUser.MaNguoiDung);
+
                 _logger.LogInformation($"User registered successfully: {email}");
                 return (true, "Đăng ký thành công!", newUser.MaNguoiDung);
             }
@@ -140,6 +143,41 @@ namespace Backend.Services
         public async Task<NguoiDung?> GetUserByIdAsync(int id)
         {
             return await _context.NguoiDung.FirstOrDefaultAsync(u => u.MaNguoiDung == id);
+        }
+
+        private async Task CreateDefaultCategoriesAsync(int userId)
+        {
+            try
+            {
+                var defaultCategories = new List<DanhMuc>
+                {
+                    // Danh mục Chi tiêu
+                    new DanhMuc { TenDanhMuc = "Ăn uống", LoaiDanhMuc = "Chi", BieuTuong = "bi bi-cup-hot", MaNguoiDung = userId },
+                    new DanhMuc { TenDanhMuc = "Di chuyển", LoaiDanhMuc = "Chi", BieuTuong = "bi bi-car-front", MaNguoiDung = userId },
+                    new DanhMuc { TenDanhMuc = "Mua sắm", LoaiDanhMuc = "Chi", BieuTuong = "bi bi-cart-check", MaNguoiDung = userId },
+                    new DanhMuc { TenDanhMuc = "Sức khỏe", LoaiDanhMuc = "Chi", BieuTuong = "bi bi-heart-pulse", MaNguoiDung = userId },
+                    new DanhMuc { TenDanhMuc = "Giáo dục", LoaiDanhMuc = "Chi", BieuTuong = "bi bi-book", MaNguoiDung = userId },
+                    new DanhMuc { TenDanhMuc = "Nhà cửa", LoaiDanhMuc = "Chi", BieuTuong = "bi bi-house", MaNguoiDung = userId },
+                    new DanhMuc { TenDanhMuc = "Giải trí", LoaiDanhMuc = "Chi", BieuTuong = "bi bi-film", MaNguoiDung = userId },
+                    new DanhMuc { TenDanhMuc = "Khác", LoaiDanhMuc = "Chi", BieuTuong = "bi bi-question-circle", MaNguoiDung = userId },
+                    
+                    // Danh mục Thu nhập
+                    new DanhMuc { TenDanhMuc = "Lương", LoaiDanhMuc = "Thu", BieuTuong = "bi bi-briefcase", MaNguoiDung = userId },
+                    new DanhMuc { TenDanhMuc = "Tiền thưởng", LoaiDanhMuc = "Thu", BieuTuong = "bi bi-gift", MaNguoiDung = userId },
+                    new DanhMuc { TenDanhMuc = "Đầu tư", LoaiDanhMuc = "Thu", BieuTuong = "bi bi-graph-up", MaNguoiDung = userId },
+                    new DanhMuc { TenDanhMuc = "Thu nhập khác", LoaiDanhMuc = "Thu", BieuTuong = "bi bi-question-circle", MaNguoiDung = userId },
+                };
+
+                _context.DanhMuc.AddRange(defaultCategories);
+                await _context.SaveChangesAsync();
+                
+                _logger.LogInformation($"Default categories created for user: {userId}");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error creating default categories for user {userId}");
+                // Không ném exception để không làm gián đoạn quá trình đăng ký
+            }
         }
     }
 }
