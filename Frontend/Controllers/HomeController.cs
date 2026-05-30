@@ -185,7 +185,7 @@ namespace Frontend.Controllers
             }
         }
 
-        public async Task<IActionResult> Transactions()
+        public async Task<IActionResult> Transactions(string searchGhiChu, string searchNgay)
         {
             var userId = HttpContext.Session.GetInt32("UserId");
             if (!userId.HasValue)
@@ -195,9 +195,24 @@ namespace Frontend.Controllers
 
             try
             {
-                var danhSachGiaoDich = await _context.GiaoDich
+                var query = _context.GiaoDich
                     .Include(g => g.DanhMuc) 
-                    .Where(g => g.MaNguoiDung == userId.Value)
+                    .Where(g => g.MaNguoiDung == userId.Value);
+
+                if (!string.IsNullOrEmpty(searchGhiChu))
+                {
+                    query = query.Where(g => g.GhiChu != null && g.GhiChu.ToLower().Contains(searchGhiChu.ToLower()));
+                }
+
+                if (!string.IsNullOrEmpty(searchNgay))
+                {
+                    if (DateTime.TryParse(searchNgay, out DateTime parsedDate))
+                    {
+                        query = query.Where(g => g.NgayGiaoDich.Date == parsedDate.Date);
+                    }
+                }
+
+                var danhSachGiaoDich = await query
                     .OrderByDescending(g => g.NgayGiaoDich)
                     .ToListAsync();
 

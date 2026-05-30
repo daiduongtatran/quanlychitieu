@@ -56,15 +56,17 @@
     </div>
 
     <div class="col-md-3 mb-4">
-        <div class="stat-card icon-category">
-            <div class="stat-icon">
-                <i class="bi bi-tag-fill"></i>
+        <a href="javascript:void(0)" data-bs-toggle="modal" data-bs-target="#nganSachModal" class="text-reset text-decoration-none">
+            <div class="stat-card icon-category" style="cursor: pointer;">
+                <div class="stat-icon">
+                    <i class="bi bi-tag-fill"></i>
+                </div>
+                <div class="stat-content">
+                    <h5>Ngân sách tháng</h5>
+                    <p class="stat-value">@monthBudget.ToString("N0") VNĐ</p>
+                </div>
             </div>
-            <div class="stat-content">
-                <h5>Ngân sách tháng</h5>
-                <p class="stat-value">@monthBudget.ToString("N0") VNĐ</p>
-            </div>
-        </div>
+        </a>
     </div>
 
     <div class="col-md-3 mb-4">

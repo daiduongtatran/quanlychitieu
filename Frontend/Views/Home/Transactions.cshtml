@@ -69,15 +69,17 @@
 
     <div class="card shadow mb-4 border-0">
         <div class="card-body py-3">
-            <form class="row g-3 align-items-center">
+            <form method="get" class="row g-3 align-items-center">
                 <div class="col-12 col-md-6">
                     <div class="input-group">
                         <span class="input-group-text bg-light border-end-0"><i class="fas fa-search text-muted"></i></span>
-                        <input type="text" class="form-control bg-light border-start-0" placeholder="Tìm theo ghi chú giao dịch...">
+                        <input type="text" name="searchGhiChu" class="form-control bg-light border-start-0" 
+                               placeholder="Tìm theo ghi chú giao dịch..." value="@Context.Request.Query["searchGhiChu"]">
                     </div>
                 </div>
                 <div class="col-12 col-md-4">
-                    <input type="date" class="form-control bg-light" title="Chọn ngày">
+                    <input type="date" name="searchNgay" class="form-control bg-light" title="Chọn ngày"
+                           value="@Context.Request.Query["searchNgay"]">
                 </div>
                 <div class="col-12 col-md-2">
                     <button type="submit" class="btn btn-secondary w-100">Lọc</button>
@@ -107,7 +109,6 @@
                         {
                             foreach (var item in Model)
                             {
-                                // Xác định màu sắc và dấu dựa vào thuộc tính phân loại của Danh mục (ví dụ LoaiDanhMuc)
                                 bool isChi = item.DanhMuc != null && item.DanhMuc.LoaiDanhMuc == "Chi";
                                 <tr>
                                     <td class="ps-4 text-muted font-monospace small">#@item.MaGiaoDich</td>

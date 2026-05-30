@@ -176,7 +176,7 @@ namespace Backend.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"Error creating default categories for user {userId}");
-                // Không ném exception để không làm gián đoạn quá trình đăng ký
+                
             }
         }
     }
