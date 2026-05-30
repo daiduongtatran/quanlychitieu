@@ -21,14 +21,14 @@ namespace Backend.Models
         public int MaDanhMuc { get; set; }
 
         [ForeignKey("MaDanhMuc")]
-        public DanhMuc DanhMuc { get; set; }
+        public DanhMuc? DanhMuc { get; set; }
 
         [Required]
         
         public int MaNguoiDung { get; set; }
 
         [ForeignKey("MaNguoiDung")]
-        public NguoiDung NguoiDung { get; set; }
+        public NguoiDung? NguoiDung { get; set; }
         public bool IsDinhKy { get; set; }
         public string? TanSuat { get; set; }      
         public DateTime? NgayKetThuc { get; set; } 

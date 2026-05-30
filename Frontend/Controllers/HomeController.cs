@@ -23,11 +23,30 @@ namespace Frontend.Controllers
         {
             bool isConnected = _context.Database.CanConnect();
             ViewBag.Status = isConnected ? "Kết nối Database thành công!" : "Kết nối Database thất bại!";
+            
+            var chiTieuTheoDanhMuc = _context.GiaoDich
+                .Where(g => g.MaDanhMuc > 0) 
+                .Include(g => g.DanhMuc)         
+                .GroupBy(g => new { 
+                    g.MaDanhMuc, 
+                    TenDM = g.DanhMuc.TenDanhMuc,  
+                    Icon = g.DanhMuc.BieuTuong    
+                })
+                .Select(group => new {
+                    MaDanhMuc = group.Key.MaDanhMuc,
+                    TenDanhMuc = group.Key.TenDM,
+                    BieuTuong = group.Key.Icon,
+                    TongTien = group.Sum(g => g.SoTien)
+                })
+                .ToList();
+
+            ViewBag.ChiTieuTheoDanhMuc = chiTieuTheoDanhMuc;
 
             return View();
         }
-                [HttpPost]
-        public async Task<IActionResult> ThemNganSach(int MaDanhMuc, decimal SoTienHanMuc, DateTime NgayBatDau, DateTime NgayKetThuc)
+
+        [HttpPost]
+        public async Task<IActionResult> ThemNganSach(string LoaiNganSach, int? MaDanhMuc, decimal SoTienHanMuc, DateTime NgayBatDau, DateTime NgayKetThuc)
         {
             int? userId = HttpContext.Session.GetInt32("UserId");
             if (userId == null)
@@ -37,16 +56,66 @@ namespace Frontend.Controllers
 
             try
             {
-                var nganSach = new NganSach
+                // TRƯỜNG HỢP 1: THIẾT LẬP HẠN MỨC CHO TỔNG CHI TIÊU THÁNG
+                if (LoaiNganSach == "Thang")
                 {
-                    MaNguoiDung = userId.Value,
-                    MaDanhMuc = MaDanhMuc,
-                    SoTienHanMuc = SoTienHanMuc,
-                    NgayBatDau = NgayBatDau,
-                    NgayKetThuc = NgayKetThuc
-                };
+                    // Xóa TOÀN BỘ ngân sách cũ của người dùng này trong khoảng thời gian đã chọn
+                    var nganSachCu = await _context.NganSach
+                        .Where(n => n.MaNguoiDung == userId.Value && n.NgayBatDau >= NgayBatDau && n.NgayKetThuc <= NgayKetThuc)
+                        .ToListAsync();
+                        
+                    if (nganSachCu.Any())
+                    {
+                        _context.NganSach.RemoveRange(nganSachCu);
+                    }
 
-                _context.NganSach.Add(nganSach);
+                    // Tạo 1 ngân sách duy nhất cho cả tháng (MaDanhMuc = null)
+                    var nganSachThangMoi = new NganSach
+                    {
+                        MaNguoiDung = userId.Value,
+                        MaDanhMuc = null, // null đại diện cho cả tháng
+                        SoTienHanMuc = SoTienHanMuc,
+                        NgayBatDau = NgayBatDau,
+                        NgayKetThuc = NgayKetThuc
+                    };
+                    _context.NganSach.Add(nganSachThangMoi);
+                }
+                // TRƯỜNG HỢP 2: THIẾT LẬP HẠN MỨC THEO DANH MỤC
+                else 
+                {
+                    // Xóa ngân sách "Tổng chi tiêu tháng" (MaDanhMuc == null) nếu có để tránh xung đột tính toán
+                    var nganSachTongCu = await _context.NganSach
+                        .Where(n => n.MaNguoiDung == userId.Value && n.MaDanhMuc == null && n.NgayBatDau >= NgayBatDau && n.NgayKetThuc <= NgayKetThuc)
+                        .ToListAsync();
+                    if (nganSachTongCu.Any())
+                    {
+                        _context.NganSach.RemoveRange(nganSachTongCu);
+                    }
+
+                    // Kiểm tra xem danh mục này trong tháng này đã được thiết lập ngân sách chưa
+                    var nganSachDanhMucCu = await _context.NganSach
+                        .FirstOrDefaultAsync(n => n.MaNguoiDung == userId.Value && n.MaDanhMuc == MaDanhMuc && n.NgayBatDau >= NgayBatDau && n.NgayKetThuc <= NgayKetThuc);
+                    
+                    if (nganSachDanhMucCu != null)
+                    {
+                        // Nếu đã tồn tại thì cập nhật đè số tiền hạn mức mới
+                        nganSachDanhMucCu.SoTienHanMuc = SoTienHanMuc;
+                    }
+                    else
+                    {
+                        // Nếu chưa có thì thêm mới (Hệ thống cho phép tạo nhiều ngân sách cho nhiều danh mục khác nhau)
+                        var nganSachDanhMucMoi = new NganSach
+                        {
+                            MaNguoiDung = userId.Value,
+                            MaDanhMuc = MaDanhMuc,
+                            SoTienHanMuc = SoTienHanMuc,
+                            NgayBatDau = NgayBatDau,
+                            NgayKetThuc = NgayKetThuc
+                        };
+                        _context.NganSach.Add(nganSachDanhMucMoi);
+                    }
+                }
+
                 await _context.SaveChangesAsync();
             }
             catch (Exception ex)
@@ -56,6 +125,7 @@ namespace Frontend.Controllers
 
             return RedirectToAction("Dashboard"); 
         }
+
         [HttpPost] 
         public async Task<IActionResult> ThemGiaoDich(
             decimal SoTien, 
@@ -83,7 +153,6 @@ namespace Frontend.Controllers
                     NgayGiaoDich = NgayGiaoDich,
                     GhiChu = GhiChu,
                     MaNguoiDung = userId.Value,
-                    
                     IsDinhKy = IsDinhKy,
                     TanSuat = IsDinhKy ? TanSuat : null, 
                     NgayKetThuc = IsDinhKy ? NgayKetThuc : null
@@ -107,7 +176,6 @@ namespace Frontend.Controllers
                 }
 
                 await _context.SaveChangesAsync();
-
                 return RedirectToAction("Dashboard");
             }
             catch (Exception ex)
@@ -116,41 +184,42 @@ namespace Frontend.Controllers
                 return RedirectToAction("Dashboard");
             }
         }
+
         public async Task<IActionResult> Transactions()
-{
-    var userId = HttpContext.Session.GetInt32("UserId");
-    if (!userId.HasValue)
-    {
-        return RedirectToAction("Login", "Account");
-    }
+        {
+            var userId = HttpContext.Session.GetInt32("UserId");
+            if (!userId.HasValue)
+            {
+                return RedirectToAction("Login", "Account");
+            }
 
-    try
-    {
-        var danhSachGiaoDich = await _context.GiaoDich
-            .Include(g => g.DanhMuc) 
-            .Where(g => g.MaNguoiDung == userId.Value)
-            .OrderByDescending(g => g.NgayGiaoDich)
-            .ToListAsync();
+            try
+            {
+                var danhSachGiaoDich = await _context.GiaoDich
+                    .Include(g => g.DanhMuc) 
+                    .Where(g => g.MaNguoiDung == userId.Value)
+                    .OrderByDescending(g => g.NgayGiaoDich)
+                    .ToListAsync();
 
-        var tongThu = danhSachGiaoDich.Where(g => g.DanhMuc != null && g.DanhMuc.LoaiDanhMuc == "Thu").Sum(g => g.SoTien);
-        var tongChi = danhSachGiaoDich.Where(g => g.DanhMuc != null && g.DanhMuc.LoaiDanhMuc == "Chi").Sum(g => g.SoTien);
-        var soDu = tongThu - tongChi;
+                var tongThu = danhSachGiaoDich.Where(g => g.DanhMuc != null && g.DanhMuc.LoaiDanhMuc == "Thu").Sum(g => g.SoTien);
+                var tongChi = danhSachGiaoDich.Where(g => g.DanhMuc != null && g.DanhMuc.LoaiDanhMuc == "Chi").Sum(g => g.SoTien);
+                var soDu = tongThu - tongChi;
 
-        ViewBag.TongThu = tongThu;
-        ViewBag.TongChi = tongChi;
-        ViewBag.SoDu = soDu;
+                ViewBag.TongThu = tongThu;
+                ViewBag.TongChi = tongChi;
+                ViewBag.SoDu = soDu;
 
-        return View(danhSachGiaoDich);
-    }
-    catch (Exception ex)
-    {
-        _logger.LogError(ex, "Lỗi khi tải lịch sử giao dịch");
-        ViewBag.TongThu = 0;
-        ViewBag.TongChi = 0;
-        ViewBag.SoDu = 0;
-        return View(new List<Backend.Models.GiaoDich>());
-    }
-}
+                return View(danhSachGiaoDich);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi khi tải lịch sử giao dịch");
+                ViewBag.TongThu = 0;
+                ViewBag.TongChi = 0;
+                ViewBag.SoDu = 0;
+                return View(new List<Backend.Models.GiaoDich>());
+            }
+        }
 
         public async Task<IActionResult> Dashboard()
         {
@@ -173,14 +242,12 @@ namespace Frontend.Controllers
                 ViewBag.UserEmail = user.Email;
                 ViewBag.AccountBalance = user.SoDuTaiKhoan;
 
-                // Chi tiêu hôm nay (Tối ưu sang SumAsync)
                 var today = DateTime.Now.Date;
                 var todayExpense = await _context.GiaoDich
                     .Where(g => g.MaNguoiDung == userId.Value && g.NgayGiaoDich.Date == today)
                     .SumAsync(g => g.SoTien);
                 ViewBag.TodayExpense = todayExpense;
 
-                // Chi tiêu tháng này
                 var currentMonth = DateTime.Now;
                 var monthStart = new DateTime(currentMonth.Year, currentMonth.Month, 1);
                 var monthEnd = new DateTime(currentMonth.Year, currentMonth.Month, DateTime.DaysInMonth(currentMonth.Year, currentMonth.Month));
@@ -192,7 +259,6 @@ namespace Frontend.Controllers
                     .SumAsync(g => g.SoTien);
                 ViewBag.MonthExpense = monthExpense;
 
-                // Ngân sách tháng
                 var monthBudget = await _context.NganSach
                     .Where(b => b.MaNguoiDung == userId.Value && 
                            b.NgayBatDau <= monthEnd && 
@@ -264,21 +330,24 @@ namespace Frontend.Controllers
                     .ToListAsync();
                 ViewBag.BudgetByCategory = budgetByCategory;
 
-
-                ViewBag.DanhSachDanhMuc = await _context.DanhMuc
+                // FIX LỖI TÊN ĐỒNG BỘ: Sinh ra cả 2 tên ViewBag để cả 2 modal (thêm giao dịch & hạn mức) đều nhận được dữ liệu danh mục
+                var danhSachDanhMuc = await _context.DanhMuc
                     .Where(d => d.MaNguoiDung == userId.Value)
                     .ToListAsync();
+
+                ViewBag.DanhSachDanhMuc = danhSachDanhMuc;
+                ViewBag.DanhMucList = danhSachDanhMuc; // <-- Thêm dòng này để giải quyết triệt để lỗi dropdown rỗng ngoài view ngân sách
 
                 return View(user);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Lỗi khi tải dữ liệu Dashboard");
-                // Đảm bảo không bị crash giao diện nếu có lỗi xảy ra
                 ViewBag.RecentTransactions = new List<object>();
                 ViewBag.ExpenseByCategory = new List<object>();
                 ViewBag.BudgetByCategory = new List<object>();
                 ViewBag.DanhSachDanhMuc = new List<Backend.Models.DanhMuc>();
+                ViewBag.DanhMucList = new List<Backend.Models.DanhMuc>();
                 return View(new Backend.Models.NguoiDung());
             }
         }

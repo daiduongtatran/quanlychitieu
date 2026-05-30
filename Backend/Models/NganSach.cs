@@ -15,11 +15,12 @@ namespace Backend.Models
         public DateTime NgayBatDau { get; set; }
         public DateTime NgayKetThuc { get; set; }
 
-        public int MaDanhMuc { get; set; }
+        public int? MaDanhMuc { get; set; }
         [ForeignKey("MaDanhMuc")]
-        public DanhMuc DanhMuc { get; set; }
+        public DanhMuc? DanhMuc { get; set; }
 
+        [ForeignKey("MaNguoiDung")]
         public int MaNguoiDung { get; set; }
-        public NguoiDung NguoiDung { get; set; }
+        public NguoiDung? NguoiDung { get; set; }
         }
     }

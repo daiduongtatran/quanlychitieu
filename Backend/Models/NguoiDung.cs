@@ -10,7 +10,7 @@ namespace Backend.Models
 
         [Required(ErrorMessage = "Tên đăng nhập không được để trống")]
         [StringLength(50)]
-        public string TenDangNhap { get; set; }
+        public string TenDangNhap { get; set; } 
 
         [Required]
         public string MatKhauHash { get; set; }
