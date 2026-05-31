@@ -33,10 +33,10 @@
                     <i class="bi bi-arrow-left-right"></i>
                     <span>Lịch sử giao dịch</span>
                 </a>
-                <a href="#reports" class="menu-item">
-                    <i class="bi bi-bar-chart"></i>
-                    <span>Báo cáo</span>
-                </a>
+                <a href="@Url.Action("Index", "BaoCao")" class="menu-item">
+    <i class="bi bi-bar-chart"></i>
+    <span>Báo cáo</span>
+</a>
                 <a href="#reminders" class="menu-item">
                     <i class="bi bi-bell"></i>
                     <span>Nhắc nhở</span>
@@ -102,15 +102,17 @@
                 const linkHref = link.getAttribute('href').toLowerCase();
                 
                 if ((currentUrl.includes('danhmuc') && linkHref.includes('danhmuc')) ||
-                    (currentUrl.includes('dashboard') && linkHref.includes('dashboard')) ||
-                    (currentUrl.includes('transactions') && linkHref.includes('transactions'))) {
-                    link.classList.add('active');
-                } else {
+    (currentUrl.includes('dashboard') && linkHref.includes('dashboard')) ||
+    (currentUrl.includes('transactions') && linkHref.includes('transactions')) ||
+    (currentUrl.includes('baocao') && linkHref.includes('baocao'))) {
+    link.classList.add('active');
+}else {
                     link.classList.remove('active');
                 }
             });
         });
     </script>
+    @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
 
