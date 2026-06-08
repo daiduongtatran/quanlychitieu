@@ -7,6 +7,31 @@
     var categoryBudgetInfo = ViewBag.CategoryBudgetInfo as System.Collections.Generic.Dictionary<int, dynamic> ?? new Dictionary<int, dynamic>();
     decimal monthExpense = ViewBag.MonthExpense ?? 0m;
     decimal monthBudget = ViewBag.MonthBudget ?? 0m;
+
+    // Helper function to convert Bootstrap Icon class to emoji
+    Func<string, string> ConvertIconToEmoji = (icon) =>
+    {
+        if (string.IsNullOrEmpty(icon)) return "❓";
+        
+        var iconMap = new Dictionary<string, string>
+        {
+            { "bi bi-cup-hot", "☕" },
+            { "bi bi-car-front", "🚗" },
+            { "bi bi-cart-check", "🛒" },
+            { "bi bi-heart-pulse", "❤️" },
+            { "bi bi-book", "📚" },
+            { "bi bi-house", "🏠" },
+            { "bi bi-film", "🎬" },
+            { "bi bi-question-circle", "❓" },
+            { "bi bi-briefcase", "💼" },
+            { "bi bi-gift", "🎁" },
+            { "bi bi-graph-up", "📈" },
+            { "bi bi-wallet2", "👛" },
+            { "bi bi-piggy-bank", "🐷" }
+        };
+        
+        return iconMap.ContainsKey(icon) ? iconMap[icon] : icon;
+    };
 }
 
 <div class="page-header mb-4" style="display: flex; justify-content: space-between; align-items: center;">
@@ -228,7 +253,7 @@
                                     <div class="transaction-icon">
                                         @if (!string.IsNullOrEmpty(transaction.BieuTuong))
                                         {
-                                            <span>@Html.Raw(transaction.BieuTuong)</span>
+                                            <span style="font-size: 1.4em;">@ConvertIconToEmoji(transaction.BieuTuong)</span>
                                         }
                                         else
                                         {
@@ -251,6 +276,160 @@
             </div>
         </div>
     </div>
+<<<<<<< HEAD
+=======
+
+    <div class="col-lg-4 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-pie-chart"></i> Thống kê chi tiêu
+                </h5>
+            </div>
+            <div class="card-body">
+                @if (monthBudget > 0)
+                {
+                    <div class="budget-status">
+                        <div class="budget-progress">
+                            <div class="progress-info">
+                                <span class="spent-label">Đã chi tiêu</span>
+                                <span class="spent-value">@monthExpense.ToString("N0") VNĐ</span>
+                            </div>
+                            <div class="progress" style="height: 8px;">
+                                <div class="progress-bar @(monthExpense > monthBudget ? "bg-danger" : "bg-success")"
+                                     role="progressbar"
+                                     style="width: @((Math.Min((monthExpense / monthBudget * 100), 100)).ToString("F0"))%"
+                                     aria-valuenow="@monthExpense" aria-valuemin="0" aria-valuemax="@monthBudget">
+                                </div>
+                            </div>
+                            <div class="progress-info">
+                                <span>Ngân sách: @monthBudget.ToString("N0") VNĐ</span>
+                                <span class="remaining @(monthExpense > monthBudget ? "text-danger" : "text-success")">
+                                    @if (monthExpense > monthBudget)
+                                    {
+                                        <span>Vượt: @((monthExpense - monthBudget).ToString("N0")) VNĐ</span>
+                                    }
+                                    else
+                                    {
+                                        <span>Còn lại: @((monthBudget - monthExpense).ToString("N0")) VNĐ</span>
+                                    }
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle"></i> Bạn chưa thiết lập ngân sách cho tháng này. Hãy 
+                        <a href="#" class="text-decoration-underline fw-bold text-warning-emphasis" data-bs-toggle="modal" data-bs-target="#nganSachModal">thiết lập</a> ngay!
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-lg-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-bar-chart"></i> Chi tiêu theo danh mục (tháng này)
+                </h5>
+            </div>
+            <div class="card-body">
+                @if (expenseByCategory.Count == 0)
+                {
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i> Chưa có chi tiêu nào
+                    </div>
+                }
+                else
+                {
+                    <div class="category-list">
+                        @foreach (var category in expenseByCategory)
+                        {
+                            <div class="category-item">
+                                <div class="category-info">
+                                    <span class="category-icon">
+                                        @if (!string.IsNullOrEmpty(category.Icon))
+                                        {
+                                            <span style="font-size: 1.2em;">@ConvertIconToEmoji(category.Icon)</span>
+                                        }
+                                        else
+                                        {
+                                            <i class="bi bi-folder"></i>
+                                        }
+                                    </span>
+                                    <div class="category-details">
+                                        <p class="category-name">@category.Category</p>
+                                        <p class="category-count">@category.Count giao dịch</p>
+                                    </div>
+                                </div>
+                                <p class="category-amount">@(((decimal)category.Total).ToString("N0")) VNĐ</p>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-target"></i> Trạng thái ngân sách
+                </h5>
+            </div>
+            <div class="card-body">
+                @if (budgetByCategory.Count == 0)
+                {
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i> Chưa có ngân sách nào
+                    </div>
+                }
+                else
+                {
+                    <div class="category-list">
+                        @foreach (var budget in budgetByCategory)
+                        {
+                            decimal spent = budget.Spent ?? 0m;
+                            decimal limit = budget.BudgetLimit ?? 0m;
+                            double percentage = limit > 0 ? (double)(spent / limit * 100) : 0;
+                            string statusClass = spent > limit ? "danger" : (spent > limit * 0.8m ? "warning" : "success");
+
+                            <div class="category-item">
+                                <div class="category-info">
+                                    <span class="category-icon">
+                                        @if (!string.IsNullOrEmpty(budget.Icon))
+                                        {
+                                            <span style="font-size: 1.2em;">@ConvertIconToEmoji(budget.Icon)</span>
+                                        }
+                                        else
+                                        {
+                                            <i class="bi bi-folder"></i>
+                                        }
+                                    </span>
+                                    <div class="category-details">
+                                        <p class="category-name">@budget.Category</p>
+                                        <p class="category-budget">@spent.ToString("N0") / @limit.ToString("N0") VNĐ</p>
+                                    </div>
+                                </div>
+                                <div class="budget-mini-progress">
+                                    <div class="progress" style="height: 4px;">
+                                        <div class="progress-bar bg-@statusClass" style="width: @((Math.Min(percentage, 100)).ToString("F0"))%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+>>>>>>> d1e7013597d5334099970cba9aad7196d62f5ffc
 </div>
 
 <div class="modal fade" id="modalThemGiaoDich" tabindex="-1" aria-labelledby="modalThemGiaoDichLabel" aria-hidden="true">
@@ -372,7 +551,7 @@
                             {
                                 foreach (var dm in ViewBag.DanhMucList)
                                 {
-                                    <option value="@dm.MaDanhMuc">@dm.BieuTuong @dm.TenDanhMuc</option>
+                                    <option value="@dm.MaDanhMuc">@dm.TenDanhMuc</option>
                                 }
                             }
                         </select>
@@ -572,6 +751,31 @@
             });
         }
 
+        // Icon conversion map
+        const iconMap = {
+            "bi bi-cup-hot": "☕",
+            "bi bi-car-front": "🚗",
+            "bi bi-cart-check": "🛒",
+            "bi bi-heart-pulse": "❤️",
+            "bi bi-book": "📚",
+            "bi bi-house": "🏠",
+            "bi bi-film": "🎬",
+            "bi bi-question-circle": "❓",
+            "bi bi-briefcase": "💼",
+            "bi bi-gift": "🎁",
+            "bi bi-graph-up": "📈",
+            "bi bi-wallet2": "👛",
+            "bi bi-piggy-bank": "🐷"
+        };
+
+        const convertIcon = (icon) => {
+            // If already emoji (contains emoji character), return as is
+            if (/[\u{1F300}-\u{1F9FF}]|[\u2600-\u26FF]/u.test(icon)) {
+                return icon;
+            }
+            return iconMap[icon] || icon;
+        };
+
         const categorySelect = document.getElementById("categorySelect");
         if (categorySelect) {
             const container = categorySelect.parentElement;
@@ -594,8 +798,11 @@
                 item.setAttribute('data-text', option.textContent);
                 
                 const icon = option.getAttribute('data-icon');
-                if (icon) {
-                    item.innerHTML = `<i class="${icon}"></i> <span>${option.textContent}</span>`;
+                const convertedIcon = convertIcon(icon);
+                if (convertedIcon && convertedIcon !== icon) {
+                    item.innerHTML = `<span style="font-size: 1.2em; margin-right: 8px;">${convertedIcon}</span><span>${option.textContent}</span>`;
+                } else if (icon && icon.includes('bi bi-')) {
+                    item.innerHTML = `<span style="font-size: 1.2em; margin-right: 8px;">${convertedIcon}</span><span>${option.textContent}</span>`;
                 } else {
                     item.textContent = option.textContent;
                 }
@@ -613,9 +820,12 @@
                 const selectedOption = categorySelect.options[categorySelect.selectedIndex];
                 const icon = selectedOption.getAttribute('data-icon');
                 const text = selectedOption.textContent;
+                const convertedIcon = convertIcon(icon);
                 
-                if (icon) {
-                    selected.innerHTML = `<i class="${icon}"></i> <span>${text}</span>`;
+                if (convertedIcon && convertedIcon !== icon) {
+                    selected.innerHTML = `<span style="font-size: 1.2em; margin-right: 8px;">${convertedIcon}</span><span>${text}</span>`;
+                } else if (icon && icon.includes('bi bi-')) {
+                    selected.innerHTML = `<span style="font-size: 1.2em; margin-right: 8px;">${convertedIcon}</span><span>${text}</span>`;
                 } else {
                     selected.textContent = text;
                 }
@@ -840,5 +1050,49 @@
     align-items: center;
     gap: 8px;
     font-size: 1rem;
+}
+
+.custom-select-items {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background-color: #fff;
+    border: 1px solid #dee2e6;
+    border-top: none;
+    border-radius: 0 0 0.375rem 0.375rem;
+    max-height: 250px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    z-index: 1000;
+    display: none;
+}
+
+.custom-select-items.active {
+    display: block;
+}
+
+.custom-select-item {
+    padding: 10px 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+}
+
+.custom-select-item:hover {
+    background-color: #f8f9fa;
+}
+
+.custom-select-item.selected {
+    background-color: #e7f1ff;
+    color: #0d6efd;
+    font-weight: 500;
+}
+
+.custom-select-wrapper {
+    position: relative;
+    width: 100%;
 }
 </style>
