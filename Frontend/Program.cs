@@ -29,6 +29,13 @@ builder.Services.AddSession(options =>
 
 var app = builder.Build();
 
+// EnsureCreated - Tự động tạo database nếu chưa có
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    db.Database.EnsureCreated();
+}
+
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
@@ -37,10 +44,11 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-app.UseRouting();
 
-// Use Session middleware
+// Use Session middleware - MUST be before UseRouting
 app.UseSession();
+
+app.UseRouting();
 
 app.UseAuthorization();
 

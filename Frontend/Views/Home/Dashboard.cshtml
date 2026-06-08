@@ -1,6 +1,7 @@
 @model Backend.Models.NguoiDung
 
 @{
+    Layout = "_DashboardLayout";
     var recentTransactions = ViewBag.RecentTransactions ?? new List<dynamic>();
     var expenseByCategory = ViewBag.ExpenseByCategory ?? new List<dynamic>();
     var budgetByCategory = ViewBag.BudgetByCategory ?? new List<dynamic>();
@@ -276,8 +277,6 @@
             </div>
         </div>
     </div>
-<<<<<<< HEAD
-=======
 
     <div class="col-lg-4 mb-4">
         <div class="card">
@@ -429,7 +428,6 @@
             </div>
         </div>
     </div>
->>>>>>> d1e7013597d5334099970cba9aad7196d62f5ffc
 </div>
 
 <div class="modal fade" id="modalThemGiaoDich" tabindex="-1" aria-labelledby="modalThemGiaoDichLabel" aria-hidden="true">
