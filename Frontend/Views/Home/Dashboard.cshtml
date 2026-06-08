@@ -9,6 +9,31 @@
     var budgetByCategory = ViewBag.BudgetByCategory ?? new List<dynamic>();
     decimal monthExpense = ViewBag.MonthExpense ?? 0m;
     decimal monthBudget = ViewBag.MonthBudget ?? 0m;
+
+    // Helper function to convert Bootstrap Icon class to emoji
+    Func<string, string> ConvertIconToEmoji = (icon) =>
+    {
+        if (string.IsNullOrEmpty(icon)) return "❓";
+        
+        var iconMap = new Dictionary<string, string>
+        {
+            { "bi bi-cup-hot", "☕" },
+            { "bi bi-car-front", "🚗" },
+            { "bi bi-cart-check", "🛒" },
+            { "bi bi-heart-pulse", "❤️" },
+            { "bi bi-book", "📚" },
+            { "bi bi-house", "🏠" },
+            { "bi bi-film", "🎬" },
+            { "bi bi-question-circle", "❓" },
+            { "bi bi-briefcase", "💼" },
+            { "bi bi-gift", "🎁" },
+            { "bi bi-graph-up", "📈" },
+            { "bi bi-wallet2", "👛" },
+            { "bi bi-piggy-bank", "🐷" }
+        };
+        
+        return iconMap.ContainsKey(icon) ? iconMap[icon] : icon;
+    };
 }
 
 <div class="page-header mb-4">
@@ -132,7 +157,7 @@
                                     <div class="transaction-icon">
                                         @if (!string.IsNullOrEmpty(transaction.BieuTuong))
                                         {
-                                            <span>@Html.Raw(transaction.BieuTuong)</span>
+                                            <span style="font-size: 1.4em;">@ConvertIconToEmoji(transaction.BieuTuong)</span>
                                         }
                                         else
                                         {
@@ -232,7 +257,7 @@
                                     <span class="category-icon">
                                         @if (!string.IsNullOrEmpty(category.Icon))
                                         {
-                                            @Html.Raw(category.Icon)
+                                            <span style="font-size: 1.2em;">@ConvertIconToEmoji(category.Icon)</span>
                                         }
                                         else
                                         {
@@ -282,7 +307,7 @@
                                     <span class="category-icon">
                                         @if (!string.IsNullOrEmpty(budget.Icon))
                                         {
-                                            @Html.Raw(budget.Icon)
+                                            <span style="font-size: 1.2em;">@ConvertIconToEmoji(budget.Icon)</span>
                                         }
                                         else
                                         {
@@ -427,7 +452,7 @@
                             {
                                 foreach (var dm in ViewBag.DanhMucList)
                                 {
-                                    <option value="@dm.MaDanhMuc">@dm.BieuTuong @dm.TenDanhMuc</option>
+                                    <option value="@dm.MaDanhMuc">@dm.TenDanhMuc</option>
                                 }
                             }
                         </select>
@@ -509,6 +534,31 @@
             });
         }
 
+        // Icon conversion map
+        const iconMap = {
+            "bi bi-cup-hot": "☕",
+            "bi bi-car-front": "🚗",
+            "bi bi-cart-check": "🛒",
+            "bi bi-heart-pulse": "❤️",
+            "bi bi-book": "📚",
+            "bi bi-house": "🏠",
+            "bi bi-film": "🎬",
+            "bi bi-question-circle": "❓",
+            "bi bi-briefcase": "💼",
+            "bi bi-gift": "🎁",
+            "bi bi-graph-up": "📈",
+            "bi bi-wallet2": "👛",
+            "bi bi-piggy-bank": "🐷"
+        };
+
+        const convertIcon = (icon) => {
+            // If already emoji (contains emoji character), return as is
+            if (/[\u{1F300}-\u{1F9FF}]|[\u2600-\u26FF]/u.test(icon)) {
+                return icon;
+            }
+            return iconMap[icon] || icon;
+        };
+
         const categorySelect = document.getElementById("categorySelect");
         if (categorySelect) {
             const container = categorySelect.parentElement;
@@ -531,8 +581,11 @@
                 item.setAttribute('data-text', option.textContent);
                 
                 const icon = option.getAttribute('data-icon');
-                if (icon) {
-                    item.innerHTML = `<i class="${icon}"></i> <span>${option.textContent}</span>`;
+                const convertedIcon = convertIcon(icon);
+                if (convertedIcon && convertedIcon !== icon) {
+                    item.innerHTML = `<span style="font-size: 1.2em; margin-right: 8px;">${convertedIcon}</span><span>${option.textContent}</span>`;
+                } else if (icon && icon.includes('bi bi-')) {
+                    item.innerHTML = `<span style="font-size: 1.2em; margin-right: 8px;">${convertedIcon}</span><span>${option.textContent}</span>`;
                 } else {
                     item.textContent = option.textContent;
                 }
@@ -550,9 +603,12 @@
                 const selectedOption = categorySelect.options[categorySelect.selectedIndex];
                 const icon = selectedOption.getAttribute('data-icon');
                 const text = selectedOption.textContent;
+                const convertedIcon = convertIcon(icon);
                 
-                if (icon) {
-                    selected.innerHTML = `<i class="${icon}"></i> <span>${text}</span>`;
+                if (convertedIcon && convertedIcon !== icon) {
+                    selected.innerHTML = `<span style="font-size: 1.2em; margin-right: 8px;">${convertedIcon}</span><span>${text}</span>`;
+                } else if (icon && icon.includes('bi bi-')) {
+                    selected.innerHTML = `<span style="font-size: 1.2em; margin-right: 8px;">${convertedIcon}</span><span>${text}</span>`;
                 } else {
                     selected.textContent = text;
                 }
@@ -777,5 +833,49 @@
     align-items: center;
     gap: 8px;
     font-size: 1rem;
+}
+
+.custom-select-items {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background-color: #fff;
+    border: 1px solid #dee2e6;
+    border-top: none;
+    border-radius: 0 0 0.375rem 0.375rem;
+    max-height: 250px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    z-index: 1000;
+    display: none;
+}
+
+.custom-select-items.active {
+    display: block;
+}
+
+.custom-select-item {
+    padding: 10px 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+}
+
+.custom-select-item:hover {
+    background-color: #f8f9fa;
+}
+
+.custom-select-item.selected {
+    background-color: #e7f1ff;
+    color: #0d6efd;
+    font-weight: 500;
+}
+
+.custom-select-wrapper {
+    position: relative;
+    width: 100%;
 }
 </style>
