@@ -350,8 +350,39 @@ namespace Frontend.Controllers
                     .Where(d => d.MaNguoiDung == userId.Value)
                     .ToListAsync();
 
+                // Lấy thông tin ngân sách cho từng danh mục
+                var categoryBudgetInfo = new Dictionary<int, dynamic>();
+                foreach (var category in danhSachDanhMuc)
+                {
+                    if (category.MaDanhMuc.HasValue)
+                    {
+                        var budget = await _context.NganSach
+                            .Where(n => n.MaNguoiDung == userId.Value && 
+                                   n.MaDanhMuc == category.MaDanhMuc &&
+                                   n.NgayBatDau <= monthEnd && 
+                                   n.NgayKetThuc >= monthStart)
+                            .FirstOrDefaultAsync();
+                        
+                        if (budget != null)
+                        {
+                            categoryBudgetInfo[category.MaDanhMuc.Value] = new
+                            {
+                                SoTienHanMuc = budget.SoTienHanMuc,
+                                NgayBatDau = budget.NgayBatDau,
+                                NgayKetThuc = budget.NgayKetThuc,
+                                MaNganSach = budget.MaNganSach
+                            };
+                        }
+                        else
+                        {
+                            categoryBudgetInfo[category.MaDanhMuc.Value] = null;
+                        }
+                    }
+                }
+
                 ViewBag.DanhSachDanhMuc = danhSachDanhMuc;
                 ViewBag.DanhMucList = danhSachDanhMuc; // <-- Thêm dòng này để giải quyết triệt để lỗi dropdown rỗng ngoài view ngân sách
+                ViewBag.CategoryBudgetInfo = categoryBudgetInfo;
 
                 return View(user);
             }

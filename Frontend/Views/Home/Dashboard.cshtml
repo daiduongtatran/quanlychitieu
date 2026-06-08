@@ -1,32 +1,18 @@
 @model Backend.Models.NguoiDung
 
 @{
-    ViewData["Title"] = "Trang chủ - SpendingSmart";
-    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
-
     var recentTransactions = ViewBag.RecentTransactions ?? new List<dynamic>();
     var expenseByCategory = ViewBag.ExpenseByCategory ?? new List<dynamic>();
     var budgetByCategory = ViewBag.BudgetByCategory ?? new List<dynamic>();
+    var categoryBudgetInfo = ViewBag.CategoryBudgetInfo as System.Collections.Generic.Dictionary<int, dynamic> ?? new Dictionary<int, dynamic>();
     decimal monthExpense = ViewBag.MonthExpense ?? 0m;
     decimal monthBudget = ViewBag.MonthBudget ?? 0m;
 }
 
-<div class="page-header mb-4">
-    <h1 class="page-title">Xin chào, <strong>@ViewBag.UserName</strong>! 👋</h1>
-    <p class="page-subtitle">@DateTime.Now.ToString("dddd, dd/MM/yyyy", System.Globalization.CultureInfo.GetCultureInfo("vi-VN"))</p>
-</div>
-
-<div class="row mb-2">
-    <div class="col-md-12">
-        <div class="stat-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-            <div class="stat-icon">
-                <i class="bi bi-piggy-bank"></i>
-            </div>
-            <div class="stat-content">
-                <h5>Số dư tài khoản</h5>
-                <p class="stat-value">@(((decimal)(ViewBag.AccountBalance ?? 0)).ToString("N0")) VNĐ</p>
-            </div>
-        </div>
+<div class="page-header mb-4" style="display: flex; justify-content: space-between; align-items: center;">
+    <div>
+        <h1 class="page-title">Xin chào, <strong>@ViewBag.UserName</strong>! 👋</h1>
+        <p class="page-subtitle">@DateTime.Now.ToString("dddd, dd/MM/yyyy", System.Globalization.CultureInfo.GetCultureInfo("vi-VN"))</p>
     </div>
 </div>
 
@@ -71,7 +57,7 @@
 
     <div class="col-md-3 mb-4">
         <a asp-controller="Home" asp-action="Transactions" class="text-reset text-decoration-none">
-            <div class="stat-card icon-transaction" style="cursor: pointer; transition: all 0.2s ease;" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='translateY(0)'">
+            <div class="stat-card icon-transaction" style="cursor: pointer;">
                 <div class="stat-icon">
                     <i class="bi bi-arrow-left-right"></i>
                 </div>
@@ -82,31 +68,141 @@
             </div>
         </a>
     </div>
-    
-    <div class="col-md-3 mb-4">
-        <div class="stat-card" 
-             data-bs-toggle="modal" 
-             data-bs-target="#modalThemGiaoDich" 
-             style="cursor: pointer; transition: all 0.2s ease;" 
-             onmouseover="this.style.transform='translateY(-3px)'" 
-             onmouseout="this.style.transform='translateY(0)'">
-            
-            <div class="stat-icon text-success">
-                <i class="bi bi-plus-circle-fill"></i>
+</div>
+
+<!-- Budget by Category & Add Transaction Section -->
+<div class="row mt-3">
+    <div class="col-md-6 mb-4">
+        <div class="card card-action-section" style="border: 2px dashed #28a745; background: linear-gradient(135deg, rgba(40, 167, 69, 0.05) 0%, rgba(40, 167, 69, 0.02) 100%); cursor: pointer;" data-bs-toggle="modal" data-bs-target="#nganSachDanhMucModal">
+            <div class="card-body text-center py-4">
+                <div style="font-size: 2.5rem; margin-bottom: 10px;">
+                    <i class="bi bi-plus-circle-fill text-success"></i>
+                </div>
+                <h5 class="text-success fw-bold">Đặt ngân sách danh mục</h5>
+                <p class="text-muted mb-0">Quản lý ngân sách theo từng loại chi tiêu</p>
             </div>
-            
-            <div class="stat-content">
-                <h5 class="text-success fw-bold">Thêm giao dịch</h5>
-                <p class="text-muted m-0" style="font-size: 0.875rem;">Nhập khoản chi mới</p>
+        </div>
+    </div>
+
+    <div class="col-md-6 mb-4">
+        <div class="card card-action-section" style="border: 2px dashed #0d6efd; background: linear-gradient(135deg, rgba(13, 110, 253, 0.05) 0%, rgba(13, 110, 253, 0.02) 100%); cursor: pointer;" data-bs-toggle="modal" data-bs-target="#modalThemGiaoDich">
+            <div class="card-body text-center py-4">
+                <div style="font-size: 2.5rem; margin-bottom: 10px;">
+                    <i class="bi bi-plus-circle-fill text-primary"></i>
+                </div>
+                <h5 class="text-primary fw-bold">Thêm giao dịch</h5>
+                <p class="text-muted mb-0">Ghi lại khoản chi tiêu mới</p>
             </div>
         </div>
     </div>
 </div>
 
 <div class="row mt-4">
-    <div class="col-lg-8 mb-4">
+    <div class="col-lg-12 mb-4">
         <div class="card">
-            <div class="card-header">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">
+                    <i class="bi bi-tag"></i> Danh mục chi tiêu
+                </h5>
+            </div>
+            <div class="card-body">
+                @{
+                    var categories = ViewBag.DanhMucList as System.Collections.Generic.List<Backend.Models.DanhMuc>;
+                }
+                @if (categories != null && categories.Count > 0)
+                {
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover">
+                            <thead>
+                                <tr style="background-color: #f8f9fa;">
+                                    <th style="width: 10%;">Biểu tượng</th>
+                                    <th style="width: 30%;">Tên danh mục</th>
+                                    <th style="width: 25%;">Ngân sách chi tiêu</th>
+                                    <th style="width: 15%;">Loại</th>
+                                    <th style="width: 20%;" class="text-end">Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var category in categories)
+                                {
+                                    var hasBudget = category.MaDanhMuc.HasValue && categoryBudgetInfo.ContainsKey(category.MaDanhMuc.Value) && categoryBudgetInfo[category.MaDanhMuc.Value] != null;
+                                    var budgetAmount = hasBudget ? categoryBudgetInfo[category.MaDanhMuc.Value].SoTienHanMuc : 0m;
+                                    
+                                    <tr>
+                                        <td>
+                                            <span style="font-size: 1.2rem;">
+                                                @if (!string.IsNullOrEmpty(category.BieuTuong))
+                                                {
+                                                    <i class="@category.BieuTuong"></i>
+                                                }
+                                                else
+                                                {
+                                                    <i class="bi bi-folder"></i>
+                                                }
+                                            </span>
+                                        </td>
+                                        <td><strong>@category.TenDanhMuc</strong></td>
+                                        <td>
+                                            @if (hasBudget)
+                                            {
+                                                <a href="javascript:void(0)" 
+                                                   onclick="showBudgetDetail(@(category.MaDanhMuc.HasValue ? category.MaDanhMuc.Value : 0), '@category.TenDanhMuc', @budgetAmount, '@categoryBudgetInfo[category.MaDanhMuc.Value].NgayBatDau.ToString("dd/MM/yyyy")', '@categoryBudgetInfo[category.MaDanhMuc.Value].NgayKetThuc.ToString("dd/MM/yyyy")')"
+                                                   style="cursor: pointer; color: #28a745; font-weight: bold; text-decoration: none;">
+                                                    @budgetAmount.ToString("N0") đ
+                                                </a>
+                                            }
+                                            else
+                                            {
+                                                <a href="javascript:void(0)" 
+                                                   onclick="showNoBudgetAlert('@category.TenDanhMuc')"
+                                                   style="cursor: pointer; color: #ccc; text-decoration: none;">
+                                                    0 đ
+                                                </a>
+                                            }
+                                        </td>
+                                        <td>
+                                            @if (category.LoaiDanhMuc == "Chi")
+                                            {
+                                                <span class="badge bg-danger">Chi tiêu</span>
+                                            }
+                                            else if (category.LoaiDanhMuc == "Thu")
+                                            {
+                                                <span class="badge bg-success">Thu nhập</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-secondary">@category.LoaiDanhMuc</span>
+                                            }
+                                        </td>
+                                        <td class="text-end">
+                                            <a asp-controller="Danhmuc" asp-action="Index" class="btn btn-sm btn-outline-primary">
+                                                <i class="bi bi-pencil"></i> Quản lý
+                                            </a>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <div class="alert alert-info m-0">
+                        <i class="bi bi-info-circle"></i> Bạn chưa tạo danh mục nào. 
+                        <a href="@Url.Action("Index", "Danhmuc")" class="text-decoration-underline fw-bold">
+                            Bấm vào đây để tạo danh mục mới
+                        </a>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-lg-12 mb-4">
+        <div class="card">
+            <div class="card-header bg-light">
                 <h5 class="mb-0">
                     <i class="bi bi-clock-history"></i> Giao dịch gần đây
                 </h5>
@@ -114,12 +210,12 @@
             <div class="card-body">
                 @if (recentTransactions.Count == 0)
                 {
-                    <div class="alert alert-info">
-                    Chưa có giao dịch nào. Bắt đầu 
-                    <a href="javascript:void(0);" class="text-decoration-underline fw-bold" data-bs-toggle="modal" data-bs-target="#modalThemGiaoDich">
-                        them giao dịch
-                    </a> 
-                    để quản lý chi tiêu của bạn.
+                    <div class="alert alert-info m-0">
+                        <i class="bi bi-info-circle"></i> Chưa có giao dịch nào. Bắt đầu 
+                        <a href="javascript:void(0);" class="text-decoration-underline fw-bold" data-bs-toggle="modal" data-bs-target="#modalThemGiaoDich">
+                            thêm giao dịch
+                        </a> 
+                        để quản lý chi tiêu của bạn.
                     </div>
                 }
                 else
@@ -147,157 +243,6 @@
                                 </div>
                                 <div class="transaction-amount">
                                     <p class="amount">-@(((decimal)transaction.SoTien).ToString("N0")) VNĐ</p>
-                                </div>
-                            </div>
-                        }
-                    </div>
-                }
-            </div>
-        </div>
-    </div>
-
-    <div class="col-lg-4 mb-4">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">
-                    <i class="bi bi-pie-chart"></i> Thống kê chi tiêu
-                </h5>
-            </div>
-            <div class="card-body">
-                @if (monthBudget > 0)
-                {
-                    <div class="budget-status">
-                        <div class="budget-progress">
-                            <div class="progress-info">
-                                <span class="spent-label">Đã chi tiêu</span>
-                                <span class="spent-value">@monthExpense.ToString("N0") VNĐ</span>
-                            </div>
-                            <div class="progress" style="height: 8px;">
-                                <div class="progress-bar @(monthExpense > monthBudget ? "bg-danger" : "bg-success")"
-                                     role="progressbar"
-                                     style="width: @((Math.Min((monthExpense / monthBudget * 100), 100)).ToString("F0"))%"
-                                     aria-valuenow="@monthExpense" aria-valuemin="0" aria-valuemax="@monthBudget">
-                                </div>
-                            </div>
-                            <div class="progress-info">
-                                <span>Ngân sách: @monthBudget.ToString("N0") VNĐ</span>
-                                <span class="remaining @(monthExpense > monthBudget ? "text-danger" : "text-success")">
-                                    @if (monthExpense > monthBudget)
-                                    {
-                                        <span>Vượt: @((monthExpense - monthBudget).ToString("N0")) VNĐ</span>
-                                    }
-                                    else
-                                    {
-                                        <span>Còn lại: @((monthBudget - monthExpense).ToString("N0")) VNĐ</span>
-                                    }
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                }
-                else
-                {
-                    <div class="alert alert-warning">
-                        <i class="bi bi-exclamation-triangle"></i> Bạn chưa thiết lập ngân sách cho tháng này. Hãy 
-                        <a href="#" class="text-decoration-underline fw-bold text-warning-emphasis" data-bs-toggle="modal" data-bs-target="#nganSachModal">thiết lập</a> ngay!
-                    </div>
-                }
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="row mt-4">
-    <div class="col-lg-6 mb-4">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">
-                    <i class="bi bi-bar-chart"></i> Chi tiêu theo danh mục (tháng này)
-                </h5>
-            </div>
-            <div class="card-body">
-                @if (expenseByCategory.Count == 0)
-                {
-                    <div class="alert alert-info">
-                        <i class="bi bi-info-circle"></i> Chưa có chi tiêu nào
-                    </div>
-                }
-                else
-                {
-                    <div class="category-list">
-                        @foreach (var category in expenseByCategory)
-                        {
-                            <div class="category-item">
-                                <div class="category-info">
-                                    <span class="category-icon">
-                                        @if (!string.IsNullOrEmpty(category.Icon))
-                                        {
-                                            @Html.Raw(category.Icon)
-                                        }
-                                        else
-                                        {
-                                            <i class="bi bi-folder"></i>
-                                        }
-                                    </span>
-                                    <div class="category-details">
-                                        <p class="category-name">@category.Category</p>
-                                        <p class="category-count">@category.Count giao dịch</p>
-                                    </div>
-                                </div>
-                                <p class="category-amount">@(((decimal)category.Total).ToString("N0")) VNĐ</p>
-                            </div>
-                        }
-                    </div>
-                }
-            </div>
-        </div>
-    </div>
-
-    <div class="col-lg-6 mb-4">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">
-                    <i class="bi bi-target"></i> Trạng thái ngân sách
-                </h5>
-            </div>
-            <div class="card-body">
-                @if (budgetByCategory.Count == 0)
-                {
-                    <div class="alert alert-info">
-                        <i class="bi bi-info-circle"></i> Chưa có ngân sách nào
-                    </div>
-                }
-                else
-                {
-                    <div class="category-list">
-                        @foreach (var budget in budgetByCategory)
-                        {
-                            decimal spent = budget.Spent ?? 0m;
-                            decimal limit = budget.BudgetLimit ?? 0m;
-                            double percentage = limit > 0 ? (double)(spent / limit * 100) : 0;
-                            string statusClass = spent > limit ? "danger" : (spent > limit * 0.8m ? "warning" : "success");
-
-                            <div class="category-item">
-                                <div class="category-info">
-                                    <span class="category-icon">
-                                        @if (!string.IsNullOrEmpty(budget.Icon))
-                                        {
-                                            @Html.Raw(budget.Icon)
-                                        }
-                                        else
-                                        {
-                                            <i class="bi bi-folder"></i>
-                                        }
-                                    </span>
-                                    <div class="category-details">
-                                        <p class="category-name">@budget.Category</p>
-                                        <p class="category-budget">@spent.ToString("N0") / @limit.ToString("N0") VNĐ</p>
-                                    </div>
-                                </div>
-                                <div class="budget-mini-progress">
-                                    <div class="progress" style="height: 4px;">
-                                        <div class="progress-bar bg-@statusClass" style="width: @((Math.Min(percentage, 100)).ToString("F0"))%"></div>
-                                    </div>
                                 </div>
                             </div>
                         }
@@ -459,7 +404,125 @@
     </div>
 </div>
 
+<!-- Modal: Đặt ngân sách theo danh mục -->
+<div class="modal fade" id="nganSachDanhMucModal" tabindex="-1" aria-labelledby="nganSachDanhMucLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title" id="nganSachDanhMucLabel">
+                    <i class="bi bi-plus-circle me-2"></i>Đặt ngân sách theo danh mục
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form asp-controller="Home" asp-action="ThemNganSach" method="post">
+                <div class="modal-body">
+                    <!-- Danh mục chi tiêu -->
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Chọn danh mục chi tiêu</label>
+                        <select name="MaDanhMuc" class="form-select" id="budgetCategorySelect" required>
+                            <option value="">-- Chọn danh mục --</option>
+                            @if (ViewBag.DanhMucList != null)
+                            {
+                                foreach (var dm in ViewBag.DanhMucList)
+                                {
+                                    <option value="@dm.MaDanhMuc" data-icon="@dm.BieuTuong">@dm.BieuTuong @dm.TenDanhMuc</option>
+                                }
+                            }
+                        </select>
+                    </div>
+
+                    <!-- Hạn mức ngân sách -->
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Hạn mức ngân sách tối đa</label>
+                        <div class="input-group">
+                            <input type="number" name="SoTienHanMuc" class="form-control" placeholder="Ví dụ: 1000000" min="1000" required />
+                            <span class="input-group-text">VNĐ</span>
+                        </div>
+                        <small class="text-muted">Bạn sẽ được cảnh báo khi chi tiêu vượt quá hạn mức này</small>
+                    </div>
+
+                    <!-- Thời gian áp dụng -->
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Thời gian áp dụng</label>
+                        <div class="row">
+                            <div class="col-6">
+                                <label class="form-label small text-muted">Từ ngày</label>
+                                <input type="date" name="NgayBatDau" class="form-control form-control-sm" 
+                                       value="@DateTime.Now.ToString("yyyy-MM-01")" required />
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label small text-muted">Đến ngày</label>
+                                <input type="date" name="NgayKetThuc" class="form-control form-control-sm" 
+                                       value="@(new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1).AddMonths(1).AddDays(-1).ToString("yyyy-MM-dd"))" required />
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Loại ngân sách (hidden, mặc định là danh mục) -->
+                    <input type="hidden" name="LoaiNganSach" value="DanhMuc" />
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-success">Lưu ngân sách</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Chi tiết ngân sách danh mục -->
+<div class="modal fade" id="budgetDetailModal" tabindex="-1" aria-labelledby="budgetDetailLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title" id="budgetDetailLabel">
+                    <i class="bi bi-wallet2 me-2"></i>Chi tiết ngân sách
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label small text-muted">Danh mục</label>
+                    <p class="h6 mb-0" id="budgetCategoryName"></p>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small text-muted">Hạn mức ngân sách</label>
+                    <p class="h5 mb-0 text-success" id="budgetAmount"></p>
+                </div>
+                <div class="row">
+                    <div class="col-6">
+                        <label class="form-label small text-muted">Ngày bắt đầu</label>
+                        <p class="mb-0" id="budgetStartDate"></p>
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label small text-muted">Ngày kết thúc</label>
+                        <p class="mb-0" id="budgetEndDate"></p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
+    function showBudgetDetail(categoryId, categoryName, budgetAmount, startDate, endDate) {
+        document.getElementById('budgetCategoryName').textContent = categoryName;
+        document.getElementById('budgetAmount').textContent = parseInt(budgetAmount).toLocaleString('vi-VN') + ' đ';
+        document.getElementById('budgetStartDate').textContent = startDate;
+        document.getElementById('budgetEndDate').textContent = endDate;
+        
+        var modal = new bootstrap.Modal(document.getElementById('budgetDetailModal'));
+        modal.show();
+    }
+
+    function showNoBudgetAlert(categoryName) {
+        alert('Bạn chưa thêm ngân sách vào danh mục: ' + categoryName);
+    }
+
     document.addEventListener("DOMContentLoaded", function () {
         const radThang = document.getElementById("radNganSachThang");
         const radDanhMuc = document.getElementById("radNganSachDanhMuc");
@@ -489,7 +552,7 @@
     .modal-backdrop {
         z-index: 1040 !important;
     }
-    #modalThemGiaoDich, #nganSachModal {
+    #modalThemGiaoDich, #nganSachModal, #nganSachDanhMucModal {
         z-index: 1055 !important;
     }
 </style>

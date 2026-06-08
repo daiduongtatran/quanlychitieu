@@ -24,7 +24,6 @@ namespace Backend.Models
         public DanhMuc? DanhMuc { get; set; }
 
         [Required]
-        
         public int MaNguoiDung { get; set; }
 
         [ForeignKey("MaNguoiDung")]

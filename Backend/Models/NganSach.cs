@@ -19,8 +19,8 @@ namespace Backend.Models
         [ForeignKey("MaDanhMuc")]
         public DanhMuc? DanhMuc { get; set; }
 
-        [ForeignKey("MaNguoiDung")]
         public int MaNguoiDung { get; set; }
+        [ForeignKey("MaNguoiDung")]
         public NguoiDung? NguoiDung { get; set; }
         }
     }
