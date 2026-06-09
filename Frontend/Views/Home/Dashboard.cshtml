@@ -46,7 +46,7 @@
 
 <div class="row">
     <div class="col-md-3 mb-4">
-        <div class="stat-card icon-expense">
+        <div class="stat-card">
             <div class="stat-icon">
                 <i class="bi bi-arrow-down-circle"></i>
             </div>
@@ -58,7 +58,7 @@
     </div>
 
     <div class="col-md-3 mb-4">
-        <div class="stat-card icon-budget">
+        <div class="stat-card">
             <div class="stat-icon">
                 <i class="bi bi-wallet2"></i>
             </div>
@@ -71,15 +71,15 @@
 
     <div class="col-md-3 mb-4">
         <a href="javascript:void(0)" data-bs-toggle="modal" data-bs-target="#nganSachModal" class="text-reset text-decoration-none">
-            <div class="stat-card icon-category" style="cursor: pointer;">
+            <div class="stat-card" style="cursor: pointer;">
                 <div class="stat-icon">
                     <i class="bi bi-tag-fill"></i>
                 </div>
                 <div class="stat-content">
                     <h5>Ngân sách tháng</h5>
                     <p class="stat-value">@monthBudget.ToString("N0") VNĐ</p>
-                    <small style="color: #666; font-size: 0.85rem;">
-                        Còn lại: <strong style="color: @(monthRemaining > 0 ? "#28a745" : "#dc3545");">@monthRemaining.ToString("N0") VNĐ</strong>
+                    <small style="color: #999; font-size: 0.85rem;">
+                        Còn lại: <strong style="color: #666;">@monthRemaining.ToString("N0") VNĐ</strong>
                     </small>
                 </div>
             </div>
@@ -88,7 +88,7 @@
 
     <div class="col-md-3 mb-4">
         <a asp-controller="Home" asp-action="Transactions" class="text-reset text-decoration-none">
-            <div class="stat-card icon-transaction" style="cursor: pointer;">
+            <div class="stat-card" style="cursor: pointer;">
                 <div class="stat-icon">
                     <i class="bi bi-arrow-left-right"></i>
                 </div>
@@ -139,8 +139,9 @@
             <div class="card-body">
                 @{
                     var categories = ViewBag.DanhMucList as System.Collections.Generic.List<Backend.Models.DanhMuc>;
+                    var expenseCategories = categories?.Where(c => c.LoaiDanhMuc == "Chi").ToList() ?? new List<Backend.Models.DanhMuc>();
                 }
-                @if (categories != null && categories.Count > 0)
+                @if (expenseCategories.Count > 0)
                 {
                     <div class="table-responsive">
                         <table class="table table-sm table-hover">
@@ -154,7 +155,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach (var category in categories)
+                                @foreach (var category in expenseCategories)
                                 {
                                     var hasBudget = category.MaDanhMuc.HasValue && categoryBudgetInfo.ContainsKey(category.MaDanhMuc.Value) && categoryBudgetInfo[category.MaDanhMuc.Value] != null;
                                     var budgetAmount = hasBudget ? categoryBudgetInfo[category.MaDanhMuc.Value].SoTienHanMuc : 0m;
@@ -192,18 +193,7 @@
                                             }
                                         </td>
                                         <td>
-                                            @if (category.LoaiDanhMuc == "Chi")
-                                            {
-                                                <span class="badge bg-danger">Chi tiêu</span>
-                                            }
-                                            else if (category.LoaiDanhMuc == "Thu")
-                                            {
-                                                <span class="badge bg-success">Thu nhập</span>
-                                            }
-                                            else
-                                            {
-                                                <span class="badge bg-secondary">@category.LoaiDanhMuc</span>
-                                            }
+                                            <span class="badge bg-danger">Chi tiêu</span>
                                         </td>
                                         <td class="text-end">
                                             <a asp-controller="Danhmuc" asp-action="Index" class="btn btn-sm btn-outline-primary">
@@ -219,7 +209,7 @@
                 else
                 {
                     <div class="alert alert-info m-0">
-                        <i class="bi bi-info-circle"></i> Bạn chưa tạo danh mục nào. 
+                        <i class="bi bi-info-circle"></i> Bạn chưa tạo danh mục chi tiêu nào. 
                         <a href="@Url.Action("Index", "Danhmuc")" class="text-decoration-underline fw-bold">
                             Bấm vào đây để tạo danh mục mới
                         </a>
@@ -230,7 +220,69 @@
     </div>
 </div>
 
+<!-- Danh mục thu nhập -->
 <div class="row mt-4">
+    <div class="col-lg-12 mb-4">
+        <div class="card">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">
+                    <i class="bi bi-graph-up"></i> Danh mục thu nhập
+                </h5>
+            </div>
+            <div class="card-body">
+                @{
+                    var incomeCategories = categories?.Where(c => c.LoaiDanhMuc == "Thu").ToList() ?? new List<Backend.Models.DanhMuc>();
+                }
+                @if (incomeCategories.Count > 0)
+                {
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover">
+                            <thead>
+                                <tr style="background-color: #f8f9fa;">
+                                    <th style="width: 10%;">Biểu tượng</th>
+                                    <th style="width: 35%;">Tên danh mục</th>
+                                    <th style="width: 15%;">Loại</th>
+                                    <th style="width: 40%;" class="text-end">Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var category in incomeCategories)
+                                {
+                                    <tr>
+                                        <td>
+                                            <span style="font-size: 1.2rem;">
+                                                @if (!string.IsNullOrEmpty(category.BieuTuong))
+                                                {
+                                                    <i class="@category.BieuTuong"></i>
+                                                }
+                                                else
+                                                {
+                                                    <i class="bi bi-folder"></i>
+                                                }
+                                            </span>
+                                        </td>
+                                        <td><strong>@category.TenDanhMuc</strong></td>
+                                        <td>
+                                            <span class="badge bg-success">Thu nhập</span>
+                                        </td>
+                                        <td class="text-end">
+                                            <a asp-controller="Danhmuc" asp-action="Index" class="btn btn-sm btn-outline-primary">
+                                                <i class="bi bi-pencil"></i> Quản lý
+                                            </a>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <div class="alert alert-info m-0">
+                        <i class="bi bi-info-circle"></i> Bạn chưa tạo danh mục thu nhập nào.
+                    </div>
+                }
+            </div>
     <div class="col-lg-12 mb-4">
         <div class="card">
             <div class="card-header bg-light">
@@ -413,8 +465,32 @@
                         {
                             decimal spent = budget.Spent ?? 0m;
                             decimal limit = budget.BudgetLimit ?? 0m;
+                            decimal remaining = budget.Remaining ?? 0m;
                             double percentage = limit > 0 ? (double)(spent / limit * 100) : 0;
-                            string statusClass = spent > limit ? "danger" : (spent > limit * 0.8m ? "warning" : "success");
+                            
+                            string statusClass;
+                            string displayColor;
+                            string statusText;
+                            
+                            if (remaining < 0)
+                            {
+                                // Âm = vượt ngân sách
+                                statusClass = "warning";  // Orange
+                                displayColor = "#FF8C00";  // Orange
+                                statusText = $"Vượt {Math.Abs(remaining):N0}đ";
+                            }
+                            else if (spent > limit * 0.8m)
+                            {
+                                statusClass = "warning";
+                                displayColor = "#FFC107";
+                                statusText = "Sắp hết";
+                            }
+                            else
+                            {
+                                statusClass = "success";
+                                displayColor = "#28a745";
+                                statusText = "Bình thường";
+                            }
 
                             <div class="category-item">
                                 <div class="category-info">
@@ -430,7 +506,11 @@
                                     </span>
                                     <div class="category-details">
                                         <p class="category-name">@budget.Category</p>
-                                        <p class="category-budget">@spent.ToString("N0") / @limit.ToString("N0") VNĐ</p>
+                                        <p class="category-budget" style="cursor: pointer; color: @displayColor; font-weight: bold;"
+                                           onclick="showCategoryBudgetExceeded('@budget.Category', @limit, @spent, @remaining)"
+                                           title="Click để xem chi tiết">
+                                            @remaining.ToString("N0") VNĐ
+                                        </p>
                                     </div>
                                 </div>
                                 <div class="budget-mini-progress">
@@ -466,28 +546,7 @@
                         <input type="date" name="NgayGiaoDich" class="form-control" value="@DateTime.Now.ToString("yyyy-MM-dd")" required />
                     </div>
 
-                    <div class="mb-3">
-                        <div class="form-check form-switch">
-                            <input class="form-check-input" type="checkbox" id="isDinhKy" name="IsDinhKy" value="true">
-                            <label class="form-check-label fw-bold" for="isDinhKy">🔄 Giao dịch định kỳ</label>
-                        </div>
-    
-                        <div id="khuVucDinhKy" class="d-none p-3 border rounded bg-light mt-2 animate__animated animate__fadeIn">
-                            <div class="mb-2">
-                                <label class="form-label small fw-bold text-secondary">Tần suất lặp lại</label>
-                                <select name="TanSuat" class="form-select form-select-sm">
-                                    <option value="HangNgay">Hàng ngày</option>
-                                    <option value="HangTuan">Hàng tuần</option>
-                                    <option value="HangThang" selected>Hàng tháng</option>
-                                    <option value="HangNam">Hàng năm</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="form-label small fw-bold text-secondary">Ngày kết thúc lặp (Không bắt buộc)</label>
-                                <input type="date" name="NgayKetThuc" class="form-control form-control-sm" />
-                            </div>
-                        </div>
-                    </div>
+
 
                     <div class="mb-3">
                         <label class="form-label fw-bold">Ghi chú / Mô tả</label>
@@ -495,7 +554,7 @@
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label fw-bold">Danh mục chi tiêu</label>
+                        <label class="form-label fw-bold">Danh mục giao dịch</label>
                         <select name="MaDanhMuc" class="form-select category-select" id="categorySelect" required>
                             <option value="">-- Chọn danh mục --</option>
                             @if (ViewBag.DanhSachDanhMuc != null)
@@ -586,12 +645,21 @@
                             <option value="">-- Chọn danh mục --</option>
                             @if (ViewBag.DanhMucList != null)
                             {
-                                foreach (var dm in ViewBag.DanhMucList)
+                                var expenseDMList = ((System.Collections.Generic.List<Backend.Models.DanhMuc>)ViewBag.DanhMucList).Where(x => x.LoaiDanhMuc == "Chi").ToList();
+                                foreach (var dm in expenseDMList)
                                 {
-                                    <option value="@dm.MaDanhMuc" data-icon="@dm.BieuTuong">@dm.BieuTuong @dm.TenDanhMuc</option>
+                                    <option value="@dm.MaDanhMuc" data-icon="@dm.BieuTuong" data-name="@dm.TenDanhMuc">@dm.TenDanhMuc</option>
                                 }
                             }
                         </select>
+                        <!-- Hiển thị danh mục được chọn với icon -->
+                        <div class="mt-2 p-2 bg-light rounded" id="selectedCategoryDisplay" style="display: none;">
+                            <small class="text-muted">Danh mục được chọn:</small>
+                            <div class="mt-1">
+                                <i id="selectedCategoryIcon" class="me-2"></i>
+                                <span id="selectedCategoryName" class="fw-bold"></span>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Hạn mức ngân sách -->
@@ -671,6 +739,45 @@
     </div>
 </div>
 
+<!-- Modal: Ngân sách vượt -->
+<div class="modal fade" id="categoryBudgetExceededModal" tabindex="-1" aria-labelledby="categoryBudgetExceededLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title" id="categoryBudgetExceededLabel">
+                    <i class="bi bi-exclamation-triangle me-2"></i>Trạng thái ngân sách danh mục
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label small text-muted">Danh mục</label>
+                    <p class="h6 mb-0" id="categoryBudgetName"></p>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small text-muted">Hạn mức</label>
+                    <p class="h5 mb-0 text-info" id="categoryBudgetLimit"></p>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small text-muted">Đã chi tiêu</label>
+                    <p class="h5 mb-0 text-danger" id="categoryBudgetSpent"></p>
+                </div>
+                <div class="mb-3" id="categoryBudgetExceededRow" style="display: none;">
+                    <label class="form-label small text-muted">Vượt ngân sách</label>
+                    <p class="h5 mb-0" id="categoryBudgetExceeded"></p>
+                </div>
+                <div class="mb-3" style="padding-top: 12px; border-top: 1px solid #ddd;">
+                    <label class="form-label small text-muted">Ngân sách còn lại</label>
+                    <p class="h5 mb-0" id="categoryBudgetRemaining" style="font-weight: bold; color: #28a745;"></p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
     function showBudgetDetail(categoryId, categoryName, budgetAmount, startDate, endDate) {
         document.getElementById('budgetCategoryName').textContent = categoryName;
@@ -684,6 +791,31 @@
 
     function showNoBudgetAlert(categoryName) {
         alert('Bạn chưa thêm ngân sách vào danh mục: ' + categoryName);
+    }
+
+    // ✅ Hiển thị modal "Ngân sách đã vượt"
+    function showCategoryBudgetExceeded(categoryName, budgetLimit, spent, remaining) {
+        document.getElementById('categoryBudgetName').textContent = categoryName;
+        document.getElementById('categoryBudgetLimit').textContent = parseInt(budgetLimit).toLocaleString('vi-VN') + ' đ';
+        document.getElementById('categoryBudgetSpent').textContent = parseInt(spent).toLocaleString('vi-VN') + ' đ';
+        
+        // ✅ Tính tiền vượt
+        const exceededAmount = spent - budgetLimit;
+        if (exceededAmount > 0) {
+            document.getElementById('categoryBudgetExceeded').innerHTML = 
+                '<span style="color: #FF8C00; font-weight: bold;">Vượt ' + parseInt(exceededAmount).toLocaleString('vi-VN') + ' đ</span>';
+            document.getElementById('categoryBudgetExceededRow').style.display = 'block';
+        } else {
+            document.getElementById('categoryBudgetExceededRow').style.display = 'none';
+        }
+        
+        // ✅ Hiển thị số dư còn lại (âm = cam, dương = xanh)
+        document.getElementById('categoryBudgetRemaining').textContent = parseInt(remaining).toLocaleString('vi-VN') + ' đ';
+        document.getElementById('categoryBudgetRemaining').style.color = remaining < 0 ? '#FF8C00' : '#28a745';
+        
+        // ✅ Show modal
+        var modal = new bootstrap.Modal(document.getElementById('categoryBudgetExceededModal'));
+        modal.show();
     }
 
     document.addEventListener("DOMContentLoaded", function () {
@@ -862,6 +994,23 @@
                     alert('Lỗi khi lưu ngân sách. Vui lòng thử lại.');
                 });
             });
+        });
+
+        // ═══════════════════════════════════════════════════════════════
+        // Handle danh mục selection để hiển thị icon
+        // ═══════════════════════════════════════════════════════════════
+        document.getElementById('budgetCategorySelect').addEventListener('change', function() {
+            const selectedOption = this.options[this.selectedIndex];
+            const icon = selectedOption.getAttribute('data-icon');
+            const name = selectedOption.getAttribute('data-name');
+            
+            if (icon && name) {
+                document.getElementById('selectedCategoryIcon').className = icon + ' me-2';
+                document.getElementById('selectedCategoryName').textContent = name;
+                document.getElementById('selectedCategoryDisplay').style.display = 'block';
+            } else {
+                document.getElementById('selectedCategoryDisplay').style.display = 'none';
+            }
         });
     });
 </script>

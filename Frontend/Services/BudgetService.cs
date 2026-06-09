@@ -104,10 +104,14 @@ namespace Frontend.Services
                 var monthStart = new DateTime(monthDate.Year, monthDate.Month, 1);
                 var monthEnd = monthStart.AddMonths(1).AddDays(-1);
 
+                // Chỉ tính CHI (loại danh mục "Chi"), không tính THU
                 var totalExpense = await _context.GiaoDich
+                    .Include(g => g.DanhMuc)
                     .Where(g => g.MaNguoiDung == userId &&
                                g.NgayGiaoDich >= monthStart &&
-                               g.NgayGiaoDich <= monthEnd)
+                               g.NgayGiaoDich <= monthEnd &&
+                               g.DanhMuc != null &&
+                               (g.DanhMuc.LoaiDanhMuc == "Chi" || g.DanhMuc.LoaiDanhMuc == "Chi Tiêu"))
                     .SumAsync(g => g.SoTien);
 
                 return totalExpense;
@@ -129,11 +133,15 @@ namespace Frontend.Services
                 var monthStart = new DateTime(monthDate.Year, monthDate.Month, 1);
                 var monthEnd = monthStart.AddMonths(1).AddDays(-1);
 
+                // Chỉ tính CHI (loại danh mục "Chi"), không tính THU
                 var categoryExpense = await _context.GiaoDich
+                    .Include(g => g.DanhMuc)
                     .Where(g => g.MaNguoiDung == userId &&
                                g.MaDanhMuc == categoryId &&
                                g.NgayGiaoDich >= monthStart &&
-                               g.NgayGiaoDich <= monthEnd)
+                               g.NgayGiaoDich <= monthEnd &&
+                               g.DanhMuc != null &&
+                               (g.DanhMuc.LoaiDanhMuc == "Chi" || g.DanhMuc.LoaiDanhMuc == "Chi Tiêu"))
                     .SumAsync(g => g.SoTien);
 
                 return categoryExpense;
@@ -199,20 +207,18 @@ namespace Frontend.Services
 
         /// <summary>
         /// Tính ngân sách chung CÒN LẠI
-        /// Công thức: SoTienNganSachThang - TongChiTieuThang
+        /// Công thức: SoTienHanMuc (giá trị còn lại - được trừ trực tiếp)
         /// </summary>
         public async Task<decimal> GetMonthlyBudgetRemainingAsync(int userId)
         {
             try
             {
                 var monthlyBudget = await GetCurrentMonthlyBudgetAsync(userId);
-                if (monthlyBudget == null || !monthlyBudget.SoTienNganSachThang.HasValue)
+                if (monthlyBudget == null)
                     return 0;
 
-                var today = DateTime.Today;
-                var totalExpense = await GetMonthlyTotalExpenseAsync(userId, today);
-
-                var remaining = monthlyBudget.SoTienNganSachThang.Value - totalExpense;
+                // ✅ SoTienHanMuc = Giá trị còn lại (đã được trừ)
+                var remaining = monthlyBudget.SoTienHanMuc;
                 return Math.Max(0, remaining);
             }
             catch (Exception ex)
@@ -224,7 +230,7 @@ namespace Frontend.Services
 
         /// <summary>
         /// Tính ngân sách danh mục CÒN LẠI
-        /// Công thức: SoTienHanMuc - TongChiTieuDanhMuc
+        /// Công thức: SoTienHanMuc (giá trị hiện tại sau khi trừ)
         /// </summary>
         public async Task<decimal> GetCategoryBudgetRemainingAsync(int userId, int categoryId)
         {
@@ -234,10 +240,8 @@ namespace Frontend.Services
                 if (categoryBudget == null)
                     return 0;
 
-                var today = DateTime.Today;
-                var categoryExpense = await GetCategoryMonthlyExpenseAsync(userId, categoryId, today);
-
-                var remaining = categoryBudget.SoTienHanMuc - categoryExpense;
+                // ✅ Trừ trực tiếp → SoTienHanMuc chính là giá trị còn lại
+                var remaining = categoryBudget.SoTienHanMuc;
                 return Math.Max(0, remaining);
             }
             catch (Exception ex)
@@ -263,42 +267,40 @@ namespace Frontend.Services
         {
             try
             {
+                // Kiểm tra xem danh mục có phải "Chi" không
+                // Nếu là "Thu", không cần kiểm tra ngân sách
+                if (categoryId.HasValue)
+                {
+                    var category = await _context.DanhMuc.FindAsync(categoryId.Value);
+                    if (category != null && (category.LoaiDanhMuc == "Thu" || category.LoaiDanhMuc == "Thu Nhập"))
+                    {
+                        // "Thu" không cần kiểm tra ngân sách
+                        return (true, "OK");
+                    }
+                }
+
                 var errors = new List<string>();
 
                 // ─────────────────────────────────────────────────────────────
-                // Kiểm tra 1: Ngân sách CHUNG (tháng)
+                // Kiểm tra 1: Ngân sách CHUNG (tháng) - Chỉ cho "Chi"
                 // ─────────────────────────────────────────────────────────────
                 var monthlyBudget = await GetCurrentMonthlyBudgetAsync(userId);
-                if (monthlyBudget != null && monthlyBudget.SoTienNganSachThang.HasValue)
+                if (monthlyBudget != null)
                 {
-                    var monthlyExpense = await GetMonthlyTotalExpenseAsync(userId, transactionDate);
-                    var monthlyRemaining = monthlyBudget.SoTienNganSachThang.Value - monthlyExpense;
+                    // ✅ SoTienHanMuc = Giá trị còn lại (đã được trừ)
+                    var monthlyRemaining = monthlyBudget.SoTienHanMuc;
 
                     if (amount > monthlyRemaining)
                     {
-                        errors.Add($"⚠️ Vượt ngân sách tháng! Còn lại: {monthlyRemaining:N0}đ");
+                        errors.Add($"⚠️ Bạn không thể thêm giao dịch này vì vượt quá số tiền trong ngân sách! Ngân sách tháng còn lại: {monthlyRemaining:N0}đ");
                     }
                 }
 
                 // ─────────────────────────────────────────────────────────────
-                // Kiểm tra 2: Ngân sách DANH MỤC (nếu có)
+                // ✅ BỎ: Kiểm tra ngân sách danh mục
+                // Cho phép ngân sách danh mục đi âm (hiển thị UI thôi)
                 // ─────────────────────────────────────────────────────────────
-                if (categoryId.HasValue)
-                {
-                    var categoryBudget = await GetCategoryBudgetAsync(userId, categoryId.Value);
-                    if (categoryBudget != null)
-                    {
-                        var categoryExpense = await GetCategoryMonthlyExpenseAsync(
-                            userId, categoryId.Value, transactionDate);
-                        var categoryRemaining = categoryBudget.SoTienHanMuc - categoryExpense;
-
-                        if (amount > categoryRemaining)
-                        {
-                            var categoryName = categoryBudget.DanhMuc?.TenDanhMuc ?? "danh mục";
-                            errors.Add($"⚠️ Vượt ngân sách {categoryName}! Còn lại: {categoryRemaining:N0}đ");
-                        }
-                    }
-                }
+                // Ngân sách danh mục không còn được validate, chỉ để tracking
 
                 if (errors.Any())
                 {
@@ -338,7 +340,12 @@ namespace Frontend.Services
 
         /// <summary>
         /// Lấy thông tin ngân sách cho DASHBOARD
-        /// Trả về: (NgânSáchChung, TongChiTieuThang, ConLai, %)
+        /// Trả về: (NgânSáchGốc, TongChiTieuThang, ConLai, %)
+        /// 
+        /// Logic:
+        /// - SoTienNganSachThang = Giá trị GỐC (không đổi)
+        /// - SoTienHanMuc = Giá trị CÒN LẠI (được trừ trực tiếp)
+        /// - Spent = Gốc - ConLai
         /// </summary>
         public async Task<(decimal budget, decimal spent, decimal remaining, decimal percentUsed)> GetMonthlyBudgetInfoAsync(int userId)
         {
@@ -348,14 +355,13 @@ namespace Frontend.Services
                 if (monthlyBudget == null || !monthlyBudget.SoTienNganSachThang.HasValue)
                     return (0, 0, 0, 0);
 
-                var budget = monthlyBudget.SoTienNganSachThang.Value;
-                var today = DateTime.Today;
-                var spent = await GetMonthlyTotalExpenseAsync(userId, today);
-                var remaining = budget - spent;
+                var budgetOriginal = monthlyBudget.SoTienNganSachThang.Value; // Gốc
+                var remaining = monthlyBudget.SoTienHanMuc; // Còn lại (đã trừ)
+                var spent = budgetOriginal - remaining; // Chi tiêu = Gốc - Còn lại
+                
+                var percentUsed = budgetOriginal > 0 ? Math.Round((spent / budgetOriginal) * 100, 2) : 0;
 
-                var percentUsed = budget > 0 ? Math.Round((spent / budget) * 100, 2) : 0;
-
-                return (budget, spent, Math.Max(0, remaining), percentUsed);
+                return (budgetOriginal, spent, Math.Max(0, remaining), percentUsed);
             }
             catch (Exception ex)
             {

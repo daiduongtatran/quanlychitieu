@@ -12,19 +12,6 @@ namespace Backend.Models
             [Required]
             [Column(TypeName = "decimal(18,2)")]
             public decimal SoTienHanMuc { get; set; }
-            
-            // ═══════════════════════════════════════════════════════════════
-            // SoTienNganSachThang: Tổng ngân sách tháng nhập vào
-            // ═══════════════════════════════════════════════════════════════
-            // Chỉ dùng khi MaDanhMuc = NULL (ngân sách chung/tháng)
-            // 
-            // Ví dụ:
-            //   - Nhập tháng: 20,000,000 VNĐ
-            //   - Tiêu ăn uống: 1,000,000 VNĐ (TRỪ từ SoTienNganSachThang)
-            //   - Tiêu xăng: 2,000,000 VNĐ (TRỪ từ SoTienNganSachThang)
-            //   - Còn lại: 17,000,000 VNĐ
-            // 
-            // Khi MaDanhMuc ≠ NULL: Cột này được IGNORE, dùng SoTienHanMuc thay
             [Column(TypeName = "decimal(18,2)")]
             public decimal? SoTienNganSachThang { get; set; }
             

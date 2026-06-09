@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Backend.Data;
 using Backend.Models;
+using Backend.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Http;
 using System.Threading.Tasks;
@@ -11,10 +12,12 @@ namespace Frontend.Controllers
     public class DanhMucController : Controller
     {
         private readonly AppDbContext _context;
+        private readonly IUserService _userService;
 
-        public DanhMucController(AppDbContext context)
+        public DanhMucController(AppDbContext context, IUserService userService)
         {
             _context = context;
+            _userService = userService;
         }
 
         // Hiển thị danh sách danh mục của User
@@ -24,6 +27,13 @@ namespace Frontend.Controllers
             if (!userId.HasValue)
             {
                 return RedirectToAction("Login", "Account");
+            }
+
+            // Set user name for avatar
+            var user = await _userService.GetUserByIdAsync(userId.Value);
+            if (user != null)
+            {
+                ViewBag.UserName = user.HoTen;
             }
 
             var danhMucs = await _context.DanhMuc
@@ -51,6 +61,13 @@ namespace Frontend.Controllers
             if (!userId.HasValue)
             {
                 return RedirectToAction("Login", "Account");
+            }
+
+            // Set user name for avatar
+            var user = await _userService.GetUserByIdAsync(userId.Value);
+            if (user != null)
+            {
+                ViewBag.UserName = user.HoTen;
             }
 
             danhMuc.MaNguoiDung = userId.Value;

@@ -41,6 +41,11 @@ namespace Frontend.Services
         /// Đánh dấu 1 thông báo là đã đọc
         /// </summary>
         Task DanhDauDaDocAsync(int userId, int maThongBao);
+
+        /// <summary>
+        /// Tạo thông báo chung
+        /// </summary>
+        Task TaoThongBaoAsync(int userId, string tieuDe, string noiDung, string loaiThongBao, string? bieuTuong);
     }
 
     public class NotificationService : INotificationService
@@ -65,7 +70,6 @@ namespace Frontend.Services
             try
             {
                 string dau = laThu ? "+" : "-";
-                string mauDau = laThu ? "tăng" : "giảm";
                 string bieuTuong = laThu ? "💰" : "💸";
 
                 string tieuDe = laThu
@@ -76,7 +80,7 @@ namespace Frontend.Services
                 if (!string.IsNullOrWhiteSpace(ghiChu))
                     noiDung += $" • {ghiChu}";
 
-                // Tính số dư ngân sách tháng còn lại
+                // ✅ Lấy ngân sách tháng còn lại từ SoTienHanMuc (giá trị CÒN LẠI - đã trừ)
                 var thangHienTai = DateTime.Now;
                 var nganSachThang = await _context.NganSach
                     .FirstOrDefaultAsync(ns => ns.MaNguoiDung == userId
@@ -85,16 +89,10 @@ namespace Frontend.Services
                                            && ns.NgayBatDau.Year == thangHienTai.Year);
 
                 decimal soDuNganSachConLai = soDuSauGiaoDich;  // Giá trị mặc định
-                if (nganSachThang != null && nganSachThang.SoTienNganSachThang.HasValue && nganSachThang.SoTienNganSachThang.Value > 0)
+                if (nganSachThang != null && nganSachThang.SoTienHanMuc >= 0)
                 {
-                    var tonGiaoDichThangNay = await _context.GiaoDich
-                        .Include(gd => gd.DanhMuc)
-                        .Where(gd => gd.MaNguoiDung == userId
-                                  && gd.NgayGiaoDich.Month == thangHienTai.Month
-                                  && gd.NgayGiaoDich.Year == thangHienTai.Year
-                                  && gd.DanhMuc != null && gd.DanhMuc.LoaiDanhMuc == "Chi")  // Chỉ tính chi
-                        .SumAsync(gd => gd.SoTien);
-                    soDuNganSachConLai = nganSachThang.SoTienNganSachThang.Value - tonGiaoDichThangNay;
+                    // ✅ SoTienHanMuc = giá trị CÒN LẠI (đã được trừ)
+                    soDuNganSachConLai = nganSachThang.SoTienHanMuc;
                 }
 
                 noiDung += $"\nSố dư khả dụng: {soDuNganSachConLai:N0}đ";
@@ -114,24 +112,8 @@ namespace Frontend.Services
         {
             try
             {
-                if (soDuHienTai >= NGUONG_SAP_HET_TIEN) return;
-
-                // Tránh spam: không tạo nếu trong 30 phút vừa rồi đã có cảnh báo tương tự
-                var thoiGianGanNhat = DateTime.Now.AddMinutes(-30);
-                bool daCoCanHBao = await _context.ThongBao
-                    .AnyAsync(t => t.MaNguoiDung == userId
-                                && t.LoaiThongBao == "SapHetTien"
-                                && t.NgayTao >= thoiGianGanNhat);
-                if (daCoCanHBao) return;
-
-                string tieuDe = "⚠️ Số dư tài khoản của bạn còn";
-                string noiDung = soDuHienTai <= 0
-                    ? $"Số dư tài khoản của bạn còn ({soDuHienTai:N0}đ). Hãy nạp tiền ngay!"
-                    : $"Số dư tài khoản của bạn còn {soDuHienTai:N0}đ. Hãy nạp thêm tiền.";
-
-                await _LuuThongBaoAsync(userId, tieuDe, noiDung, "SapHetTien", "🔴");
-
-                // Kiểm tra ngân sách tháng và tạo cảnh báo ngân sách sắp hết
+                // ✅ Chỉ tạo cảnh báo nếu ngân sách tháng CÒN LẠI < 100k
+                // Bỏ check "số dư hiện tại < 100k"
                 var thangHienTai = DateTime.Now;
                 var nganSachThang = await _context.NganSach
                     .FirstOrDefaultAsync(ns => ns.MaNguoiDung == userId
@@ -139,33 +121,30 @@ namespace Frontend.Services
                                            && ns.NgayBatDau.Month == thangHienTai.Month
                                            && ns.NgayBatDau.Year == thangHienTai.Year);
 
-                if (nganSachThang != null && nganSachThang.SoTienNganSachThang.HasValue && nganSachThang.SoTienNganSachThang.Value > 0)
-                {
-                    var tonGiaoDichThangNay = await _context.GiaoDich
-                        .Include(gd => gd.DanhMuc)
-                        .Where(gd => gd.MaNguoiDung == userId
-                                  && gd.NgayGiaoDich.Month == thangHienTai.Month
-                                  && gd.NgayGiaoDich.Year == thangHienTai.Year
-                                  && gd.DanhMuc != null && gd.DanhMuc.LoaiDanhMuc == "Chi")  // Chỉ tính chi
-                        .SumAsync(gd => gd.SoTien);
+                // Nếu không có ngân sách tháng, không cảnh báo
+                if (nganSachThang == null)
+                    return;
 
-                    decimal soDuNganSachConLai = nganSachThang.SoTienNganSachThang.Value - tonGiaoDichThangNay;
+                // ✅ Lấy ngân sách còn lại từ SoTienHanMuc (giá trị CÒN LẠI)
+                decimal soDuNganSachConLai = nganSachThang.SoTienHanMuc;
 
-                    if (soDuNganSachConLai <= NGUONG_SAP_HET_TIEN)
-                    {
-                        // Tránh spam: không tạo nếu trong 30 phút vừa rồi đã có cảnh báo ngân sách
-                        bool daCoCanHBaoNganSach = await _context.ThongBao
-                            .AnyAsync(t => t.MaNguoiDung == userId
-                                        && t.LoaiThongBao == "SapHetNganSach"
-                                        && t.NgayTao >= thoiGianGanNhat);
-                        if (!daCoCanHBaoNganSach)
-                        {
-                            string tieuDeNganSach = "⚠️ Số dư ngân sách sắp hết!";
-                            string noiDungNganSach = $"Ngân sách tháng còn lại: {soDuNganSachConLai:N0}đ. Hãy kiểm soát chi tiêu!";
-                            await _LuuThongBaoAsync(userId, tieuDeNganSach, noiDungNganSach, "SapHetNganSach", "📊");
-                        }
-                    }
-                }
+                // Chỉ tạo cảnh báo nếu ngân sách tháng còn < 100k
+                if (soDuNganSachConLai >= NGUONG_SAP_HET_TIEN)
+                    return;
+
+                // Tránh spam: không tạo nếu trong 30 phút vừa rồi đã có cảnh báo tương tự
+                var thoiGianGanNhat = DateTime.Now.AddMinutes(-30);
+                bool daCoCanHBao = await _context.ThongBao
+                    .AnyAsync(t => t.MaNguoiDung == userId
+                                && t.LoaiThongBao == "SapHetNganSach"
+                                && t.NgayTao >= thoiGianGanNhat);
+                if (daCoCanHBao) return;
+
+                // ✅ Nội dung cảnh báo: "Số dư tài khoản của bạn còn (...) hãy chú ý ngân sách chi tiêu"
+                string tieuDe = "⚠️ Cảnh báo ngân sách!";
+                string noiDung = $"Số dư tài khoản của bạn còn ({soDuNganSachConLai:N0}đ) hãy chú ý ngân sách chi tiêu";
+
+                await _LuuThongBaoAsync(userId, tieuDe, noiDung, "SapHetNganSach", "🔴");
             }
             catch (Exception ex)
             {
@@ -255,6 +234,20 @@ namespace Frontend.Services
             {
                 tb.DaDoc = true;
                 await _context.SaveChangesAsync();
+            }
+        }
+
+        // ✅ Tạo thông báo chung (generic)
+        public async Task TaoThongBaoAsync(
+            int userId, string tieuDe, string noiDung, string loaiThongBao, string? bieuTuong)
+        {
+            try
+            {
+                await _LuuThongBaoAsync(userId, tieuDe, noiDung, loaiThongBao, bieuTuong);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi khi tạo thông báo");
             }
         }
 
