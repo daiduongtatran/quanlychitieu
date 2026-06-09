@@ -8,6 +8,8 @@
     var categoryBudgetInfo = ViewBag.CategoryBudgetInfo as System.Collections.Generic.Dictionary<int, dynamic> ?? new Dictionary<int, dynamic>();
     decimal monthExpense = ViewBag.MonthExpense ?? 0m;
     decimal monthBudget = ViewBag.MonthBudget ?? 0m;
+    decimal monthRemaining = ViewBag.MonthRemaining ?? 0m;
+    decimal percentUsed = ViewBag.PercentUsed ?? 0m;
 
     // Helper function to convert Bootstrap Icon class to emoji
     Func<string, string> ConvertIconToEmoji = (icon) =>
@@ -76,6 +78,9 @@
                 <div class="stat-content">
                     <h5>Ngân sách tháng</h5>
                     <p class="stat-value">@monthBudget.ToString("N0") VNĐ</p>
+                    <small style="color: #666; font-size: 0.85rem;">
+                        Còn lại: <strong style="color: @(monthRemaining > 0 ? "#28a745" : "#dc3545");">@monthRemaining.ToString("N0") VNĐ</strong>
+                    </small>
                 </div>
             </div>
         </a>
@@ -282,37 +287,49 @@
         <div class="card">
             <div class="card-header">
                 <h5 class="mb-0">
-                    <i class="bi bi-pie-chart"></i> Thống kê chi tiêu
+                    <i class="bi bi-pie-chart"></i> Thống kê chi tiêu tháng
                 </h5>
             </div>
             <div class="card-body">
                 @if (monthBudget > 0)
                 {
                     <div class="budget-status">
-                        <div class="budget-progress">
-                            <div class="progress-info">
-                                <span class="spent-label">Đã chi tiêu</span>
-                                <span class="spent-value">@monthExpense.ToString("N0") VNĐ</span>
+                        <!-- Ngân sách gốc -->
+                        <div style="margin-bottom: 8px; display: flex; justify-content: space-between; font-size: 0.9rem;">
+                            <span>Ngân sách gốc:</span>
+                            <strong>@monthBudget.ToString("N0") VNĐ</strong>
+                        </div>
+                        
+                        <!-- Progress bar -->
+                        <div class="progress" style="height: 8px; margin-bottom: 12px;">
+                            <div class="progress-bar @(percentUsed > 100 ? "bg-danger" : (percentUsed > 80 ? "bg-warning" : "bg-success"))"
+                                 role="progressbar"
+                                 style="width: @((Math.Min(percentUsed, 100)).ToString("F0"))%"
+                                 aria-valuenow="@monthExpense" aria-valuemin="0" aria-valuemax="@monthBudget">
                             </div>
-                            <div class="progress" style="height: 8px;">
-                                <div class="progress-bar @(monthExpense > monthBudget ? "bg-danger" : "bg-success")"
-                                     role="progressbar"
-                                     style="width: @((Math.Min((monthExpense / monthBudget * 100), 100)).ToString("F0"))%"
-                                     aria-valuenow="@monthExpense" aria-valuemin="0" aria-valuemax="@monthBudget">
-                                </div>
-                            </div>
-                            <div class="progress-info">
-                                <span>Ngân sách: @monthBudget.ToString("N0") VNĐ</span>
-                                <span class="remaining @(monthExpense > monthBudget ? "text-danger" : "text-success")">
-                                    @if (monthExpense > monthBudget)
-                                    {
-                                        <span>Vượt: @((monthExpense - monthBudget).ToString("N0")) VNĐ</span>
-                                    }
-                                    else
-                                    {
-                                        <span>Còn lại: @((monthBudget - monthExpense).ToString("N0")) VNĐ</span>
-                                    }
-                                </span>
+                        </div>
+                        
+                        <!-- Đã chi tiêu -->
+                        <div style="margin-bottom: 8px; display: flex; justify-content: space-between; font-size: 0.9rem;">
+                            <span>Đã chi tiêu:</span>
+                            <strong style="color: #dc3545;">@monthExpense.ToString("N0") VNĐ</strong>
+                        </div>
+                        
+                        <!-- Phần trăm sử dụng -->
+                        <div style="margin-bottom: 8px; display: flex; justify-content: space-between; font-size: 0.9rem;">
+                            <span>Sử dụng:</span>
+                            <strong style="color: @(percentUsed > 100 ? "#dc3545" : (percentUsed > 80 ? "#ffc107" : "#28a745"));">
+                                @(percentUsed.ToString("F1"))%
+                            </strong>
+                        </div>
+                        
+                        <!-- Còn lại -->
+                        <div style="padding-top: 8px; border-top: 1px solid #ddd; padding-top: 12px;">
+                            <div style="display: flex; justify-content: space-between; font-size: 0.95rem;">
+                                <span><strong>Còn lại:</strong></span>
+                                <strong style="color: @(monthRemaining > 0 ? "#28a745" : "#dc3545"); font-size: 1.1rem;">
+                                    @monthRemaining.ToString("N0") VNĐ
+                                </strong>
                             </div>
                         </div>
                     </div>
@@ -522,39 +539,8 @@
             </div>
             <form asp-controller="Home" asp-action="ThemNganSach" method="post">
                 <div class="modal-body">
+                    <input type="hidden" name="LoaiNganSach" value="Thang" />
                     
-                    <div class="mb-3 p-2 bg-light rounded border">
-                        <label class="form-label fw-bold text-dark d-block mb-2">Loại ngân sách áp dụng</label>
-                        <div class="d-flex gap-4 justify-content-center">
-                            <div class="form-check form-check-inline">
-                                <input class="form-check-input" type="radio" name="LoaiNganSach" id="radNganSachThang" value="Thang" checked>
-                                <label class="form-check-label fw-bold text-primary" for="radNganSachThang" style="cursor:pointer;">
-                                    💳 Tổng chi tiêu tháng
-                                </label>
-                            </div>
-                            <div class="form-check form-check-inline">
-                                <input class="form-check-input" type="radio" name="LoaiNganSach" id="radNganSachDanhMuc" value="DanhMuc">
-                                <label class="form-check-label fw-bold text-success" for="radNganSachDanhMuc" style="cursor:pointer;">
-                                    🏷️ Theo danh mục chi tiết
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="mb-3 d-none" id="khuVucChonDanhMuc">
-                        <label class="form-label fw-bold">Áp dụng cho danh mục</label>
-                        <select name="MaDanhMuc" id="selectMaDanhMuc" class="form-select">
-                            <option value="">-- Chọn danh mục chi tiêu --</option>
-                            @if (ViewBag.DanhMucList != null)
-                            {
-                                foreach (var dm in ViewBag.DanhMucList)
-                                {
-                                    <option value="@dm.MaDanhMuc">@dm.TenDanhMuc</option>
-                                }
-                            }
-                        </select>
-                    </div>
-
                     <div class="mb-3">
                         <label class="form-label fw-bold">Số tiền hạn mức tối đa (đ)</label>
                         <input type="number" name="SoTienHanMuc" class="form-control" placeholder="Ví dụ: 2000000" min="1000" required />
@@ -847,6 +833,36 @@
                 }
             });
         }
+
+        // ═══════════════════════════════════════════════════════════════
+        // AUTO-RELOAD DASHBOARD AFTER SAVING BUDGET
+        // ═══════════════════════════════════════════════════════════════
+        const budgetForms = document.querySelectorAll('form[asp-action="ThemNganSach"]');
+        budgetForms.forEach(form => {
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const formData = new FormData(this);
+                fetch(this.action, {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => {
+                    if (response.ok) {
+                        // ✅ Success - Auto reload after 1 second
+                        setTimeout(() => {
+                            location.reload();
+                        }, 800);
+                    } else {
+                        alert('Lỗi khi lưu ngân sách. Vui lòng thử lại.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Lỗi khi lưu ngân sách. Vui lòng thử lại.');
+                });
+            });
+        });
     });
 </script>
 

@@ -1,40 +1,35 @@
 @model LoginModel
 
 @{
-    ViewData["Title"] = "Đăng nhập - SpendingSmart";
+    ViewData["Title"] = "Đăng nhập - Quản lý chi tiêu";
 }
 
 <div class="auth-container">
     <div class="auth-wrapper">
-        <!-- Left Side - Branding -->
         <div class="auth-branding">
             <div class="auth-logo">
                 <i class="bi bi-wallet-fill"></i>
             </div>
-            <h1 class="auth-title">SpendingSmart</h1>
-            <p class="auth-subtitle">Quản lý tài chính thông minh</p>
+            <h1 class="auth-title">Quản lý chi tiêu</h1>
+            <p class="auth-subtitle">Kiểm soát tài chính thông minh</p>
             
             <div class="auth-features mt-5">
                 <div class="auth-feature">
-                    <div class="feature-icon">📊</div>
                     <p>Quản lý chi tiêu dễ dàng</p>
                 </div>
                 <div class="auth-feature">
-                    <div class="feature-icon">💡</div>
-                    <p>Báo cáo chi tiết &amp; Insights</p>
+                    <p>Báo cáo chi tiết</p>
                 </div>
                 <div class="auth-feature">
-                    <div class="feature-icon">🔒</div>
                     <p>Bảo mật cao nhất</p>
                 </div>
             </div>
         </div>
 
-        <!-- Right Side - Form -->
         <div class="auth-form-wrapper">
             <div class="auth-form-container">
-                <h2 class="mb-2">Chào mừng trở lại</h2>
-                <p class="text-muted mb-4">Nhập thông tin của bạn để tiếp tục</p>
+                <h2 class="mb-2">Đăng nhập</h2>
+                <p class="text-muted mb-4">Nhập thông tin của bạn</p>
 
                 @if (ViewBag.ErrorMessage != null)
                 {
@@ -44,30 +39,18 @@
                     </div>
                 }
 
-                <form method="post" class="needs-validation" novalidate>
+                <form method="post">
                     @Html.AntiForgeryToken()
 
                     <div class="mb-3">
-                        <label asp-for="Email" class="form-label fw-500">Email</label>
-                        <div class="input-group">
-                            <span class="input-group-text bg-light border-0">
-                                <i class="bi bi-envelope text-success"></i>
-                            </span>
-                            <input asp-for="Email" type="email" class="form-control border-0 ps-0" 
-                                   placeholder="your@email.com" required />
-                        </div>
+                        <label asp-for="Email" class="form-label">Email</label>
+                        <input asp-for="Email" type="email" class="form-control" placeholder="your@email.com" required />
                         <span asp-validation-for="Email" class="text-danger small"></span>
                     </div>
 
                     <div class="mb-3">
-                        <label asp-for="Password" class="form-label fw-500">Mật khẩu</label>
-                        <div class="input-group">
-                            <span class="input-group-text bg-light border-0">
-                                <i class="bi bi-lock text-success"></i>
-                            </span>
-                            <input asp-for="Password" type="password" class="form-control border-0 ps-0" 
-                                   placeholder="Nhập mật khẩu" required />
-                        </div>
+                        <label asp-for="Password" class="form-label">Mật khẩu</label>
+                        <input asp-for="Password" type="password" class="form-control" placeholder="Nhập mật khẩu" required />
                         <span asp-validation-for="Password" class="text-danger small"></span>
                     </div>
 
@@ -78,25 +61,16 @@
                                 Nhớ tôi
                             </label>
                         </div>
-                        <a asp-action="ForgotPassword" class="text-success text-decoration-none fw-500 small">
-                            Quên mật khẩu?
-                        </a>
                     </div>
 
-                    <button type="submit" class="btn btn-success w-100 py-3 fw-bold mb-3">
-                        <i class="bi bi-box-arrow-in-right"></i> Đăng nhập
+                    <button type="submit" class="btn btn-success w-100 py-2 fw-bold">
+                        Đăng nhập
                     </button>
                 </form>
 
-                <div class="divider-with-text mb-3">hoặc</div>
-
-                <button type="button" class="btn btn-outline-secondary w-100 py-3 fw-500 mb-3">
-                    <i class="bi bi-google"></i> Đăng nhập với Google
-                </button>
-
-                <p class="text-center text-muted mb-0">
+                <p class="text-center text-muted mt-3 mb-0">
                     Chưa có tài khoản? 
-                    <a asp-action="Register" class="text-success text-decoration-none fw-bold">Đăng ký ngay</a>
+                    <a asp-action="Register" class="text-success text-decoration-none fw-bold">Đăng ký</a>
                 </p>
             </div>
         </div>
@@ -105,18 +79,16 @@
 
 @section Scripts {
     <script>
-        // Bootstrap validation
         (function () {
             'use strict';
             window.addEventListener('load', function () {
-                var forms = document.querySelectorAll('.needs-validation');
+                var forms = document.querySelectorAll('form');
                 Array.prototype.slice.call(forms).forEach(function (form) {
                     form.addEventListener('submit', function (event) {
                         if (!form.checkValidity()) {
                             event.preventDefault();
                             event.stopPropagation();
                         }
-                        form.classList.add('was-validated');
                     }, false);
                 });
             });
