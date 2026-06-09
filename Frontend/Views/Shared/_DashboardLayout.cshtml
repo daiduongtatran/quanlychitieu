@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Quản lý chi tiêu</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/dashboard.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/notification.css" asp-append-version="true" />
+</head>
+<body>
+    <header class="header-nav">
+        <div class="header-content">
+            <div class="header-logo">
+                <i class="bi bi-wallet-fill"></i>
+                <span>Quản lý chi tiêu</span>
+            </div>
+
+            <nav class="header-menu">
+                <a href="@Url.Action("Dashboard", "Home")" class="menu-item active">
+                    <i class="bi bi-house"></i>
+                    <span>Trang chủ</span>
+                </a>
+                <a href="@Url.Action("Index", "Danhmuc")" class="menu-item">
+                    <i class="bi bi-tag-fill"></i>
+                    <span>Danh mục</span>
+                </a>
+                <a href="@Url.Action("Transactions", "Home")" class="menu-item">
+                    <i class="bi bi-arrow-left-right"></i>
+                    <span>Giao dịch</span>
+                </a>
+                <a href="@Url.Action("Index", "BaoCao")" class="menu-item">
+                    <i class="bi bi-bar-chart"></i>
+                    <span>Báo cáo</span>
+                </a>
+            </nav>
+
+            <div class="header-user">
+                <!-- ─── Notification Bell ─────────────────────────── -->
+                <div class="notif-wrapper">
+                    <button class="notif-btn" id="notifBtn" title="Thông báo" aria-label="Thông báo">
+                        <i class="bi bi-bell-fill"></i>
+                        <span class="notif-badge hidden" id="notifBadge">0</span>
+                    </button>
+
+                    <!-- Dropdown panel -->
+                    <div class="notif-panel" id="notifPanel">
+                        <div class="notif-header">
+                            <div class="notif-header-title">
+                                <i class="bi bi-bell"></i>
+                                Thông báo
+                                <span class="cnt" id="notifCnt" style="display:none"></span>
+                            </div>
+                            <button class="notif-mark-all" id="notifMarkAll">
+                                Đánh dấu đã đọc
+                            </button>
+                        </div>
+                        <div class="notif-list" id="notifList">
+                            <div class="notif-empty">
+                                <i class="bi bi-bell-slash"></i>
+                                <span>Chưa có thông báo nào</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="user-avatar-wrapper">
+                    <div class="user-avatar" title="@ViewBag.UserName">
+                        @(string.IsNullOrEmpty(ViewBag.UserName) ? "U" : ViewBag.UserName[0].ToString().ToUpper())
+                    </div>
+                    <div class="user-dropdown">
+                        <a href="@Url.Action("Logout", "Account")" class="dropdown-item">
+                            <i class="bi bi-box-arrow-left"></i> Đăng xuất
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content">
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="success-message">
+                <i class="bi bi-check-circle"></i>
+                <span>@TempData["SuccessMessage"]</span>
+            </div>
+        }
+
+        @RenderBody()
+    </main>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="~/js/notification.js" asp-append-version="true"></script>
+    
+    <script>
+        document.querySelector('.user-avatar')?.addEventListener('click', function(e) {
+            e.preventDefault();
+            document.querySelector('.user-dropdown').classList.toggle('show');
+        });
+
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.user-avatar-wrapper')) {
+                document.querySelector('.user-dropdown')?.classList.remove('show');
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const currentUrl = window.location.pathname.toLowerCase();
+            document.querySelectorAll('.menu-item').forEach(link => {
+                const linkHref = link.getAttribute('href').toLowerCase();
+                if ((currentUrl.includes('danhmuc') && linkHref.includes('danhmuc')) ||
+                    (currentUrl.includes('dashboard') && linkHref.includes('dashboard')) ||
+                    (currentUrl.includes('transactions') && linkHref.includes('transactions')) ||
+                    (currentUrl.includes('baocao') && linkHref.includes('baocao'))) {
+                    link.classList.add('active');
+                } else {
+                    link.classList.remove('active');
+                }
+            });
+        });
+    </script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

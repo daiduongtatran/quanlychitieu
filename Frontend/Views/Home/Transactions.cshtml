@@ -1,0 +1,155 @@
+@model IEnumerable<Backend.Models.GiaoDich>
+@{
+    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
+    ViewData["Title"] = "Lịch sử giao dịch";
+}
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<div class="container-fluid px-4 py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-1 text-gray-800 fw-bold">Lịch sử giao dịch</h1>
+            <p class="text-muted mb-0">Xem và quản lý các khoản thu chi thực tế của bạn</p>
+        </div>
+        <button class="btn btn-primary shadow-sm">
+            <i class="fas fa-download me-2"></i> Xuất Excel
+        </button>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-xl-4 col-md-6 mb-4">
+            <div class="card shadow h-100 py-2 border-0 border-start border-success border-4">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1" style="font-size: 0.8rem;">Tổng thu nhập</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800 fw-bold">+@string.Format("{0:N0}", ViewBag.TongThu) VNĐ</div>
+                        </div>
+                        <div class="col-auto text-muted">
+                            <i class="fas fa-wallet fa-2x text-success"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-4 col-md-6 mb-4">
+            <div class="card shadow h-100 py-2 border-0 border-start border-danger border-4">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <div class="text-xs font-weight-bold text-danger text-uppercase mb-1" style="font-size: 0.8rem;">Tổng chi tiêu</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800 fw-bold">-@string.Format("{0:N0}", ViewBag.TongChi) VNĐ</div>
+                        </div>
+                        <div class="col-auto text-muted">
+                            <i class="fas fa-shopping-cart fa-2x text-danger"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-4 col-md-6 mb-4">
+            <div class="card shadow h-100 py-2 border-0 border-start border-info border-4">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1" style="font-size: 0.8rem;">Số dư tích lũy</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800 fw-bold">@string.Format("{0:N0}", ViewBag.SoDu) VNĐ</div>
+                        </div>
+                        <div class="col-auto text-muted">
+                            <i class="fas fa-scale-balanced fa-2x text-info"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow mb-4 border-0">
+        <div class="card-body py-3">
+            <form method="get" class="row g-3 align-items-center">
+                <div class="col-12 col-md-6">
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-end-0"><i class="fas fa-search text-muted"></i></span>
+                        <input type="text" name="searchGhiChu" class="form-control bg-light border-start-0" 
+                               placeholder="Tìm theo ghi chú giao dịch..." value="@Context.Request.Query["searchGhiChu"]">
+                    </div>
+                </div>
+                <div class="col-12 col-md-4">
+                    <input type="date" name="searchNgay" class="form-control bg-light" title="Chọn ngày"
+                           value="@Context.Request.Query["searchNgay"]">
+                </div>
+                <div class="col-12 col-md-2">
+                    <button type="submit" class="btn btn-secondary w-100">Lọc</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card shadow mb-4 border-0">
+        <div class="card-header py-3 bg-white border-0">
+            <h6 class="m-0 font-weight-bold text-primary fw-bold"><i class="fas fa-list me-2"></i>Chi tiết các giao dịch phát sinh</h6>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light text-muted small text-uppercase">
+                        <tr>
+                            <th class="ps-4">Mã GD</th>
+                            <th>Thời gian</th>
+                            <th>Danh mục</th>
+                            <th>Ghi chú</th>
+                            <th class="text-end pe-4">Số tiền</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model != null && Model.Any())
+                        {
+                            foreach (var item in Model)
+                            {
+                                bool isChi = item.DanhMuc != null && item.DanhMuc.LoaiDanhMuc == "Chi";
+                                <tr>
+                                    <td class="ps-4 text-muted font-monospace small">#@item.MaGiaoDich</td>
+                                    <td>
+                                        <div class="d-flex flex-column">
+                                            <span class="fw-semibold">@item.NgayGiaoDich.ToString("yyyy-MM-dd")</span>
+                                            <span class="text-muted small">@item.NgayGiaoDich.ToString("hh:mm tt")</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-light text-dark border">
+                                            <i class="fas fa-tag me-1 text-secondary"></i> 
+                                            @(item.DanhMuc != null ? item.DanhMuc.TenDanhMuc : "Không rõ")
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="fw-medium text-dark">@(string.IsNullOrEmpty(item.GhiChu) ? "Không có ghi chú" : item.GhiChu)</span>
+                                    </td>
+                                    <td class="text-end pe-4 fw-bold @(isChi ? "text-danger" : "text-success")">
+                                        @(isChi ? "-" : "+")@string.Format("{0:N0}", item.SoTien) VNĐ
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="5" class="text-center py-5 text-muted">
+                                    <i class="fas fa-folder-open fa-2x mb-2 d-block text-gray-300"></i>
+                                    Bạn chưa thực hiện giao dịch nào trong hệ thống.
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .fw-semibold { font-weight: 600; }
+    .fw-medium { font-weight: 500; }
+</style>

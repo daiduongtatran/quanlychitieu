@@ -1,0 +1,97 @@
+@model LoginModel
+
+@{
+    ViewData["Title"] = "Đăng nhập - Quản lý chi tiêu";
+}
+
+<div class="auth-container">
+    <div class="auth-wrapper">
+        <div class="auth-branding">
+            <div class="auth-logo">
+                <i class="bi bi-wallet-fill"></i>
+            </div>
+            <h1 class="auth-title">Quản lý chi tiêu</h1>
+            <p class="auth-subtitle">Kiểm soát tài chính thông minh</p>
+            
+            <div class="auth-features mt-5">
+                <div class="auth-feature">
+                    <p>Quản lý chi tiêu dễ dàng</p>
+                </div>
+                <div class="auth-feature">
+                    <p>Báo cáo chi tiết</p>
+                </div>
+                <div class="auth-feature">
+                    <p>Bảo mật cao nhất</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="auth-form-wrapper">
+            <div class="auth-form-container">
+                <h2 class="mb-2">Đăng nhập</h2>
+                <p class="text-muted mb-4">Nhập thông tin của bạn</p>
+
+                @if (ViewBag.ErrorMessage != null)
+                {
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <i class="bi bi-exclamation-circle"></i> @ViewBag.ErrorMessage
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                }
+
+                <form method="post">
+                    @Html.AntiForgeryToken()
+
+                    <div class="mb-3">
+                        <label asp-for="Email" class="form-label">Email</label>
+                        <input asp-for="Email" type="email" class="form-control" placeholder="your@email.com" required />
+                        <span asp-validation-for="Email" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Password" class="form-label">Mật khẩu</label>
+                        <input asp-for="Password" type="password" class="form-control" placeholder="Nhập mật khẩu" required />
+                        <span asp-validation-for="Password" class="text-danger small"></span>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <div class="form-check">
+                            <input asp-for="RememberMe" type="checkbox" class="form-check-input" id="rememberMe" />
+                            <label class="form-check-label" for="rememberMe">
+                                Nhớ tôi
+                            </label>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-success w-100 py-2 fw-bold">
+                        Đăng nhập
+                    </button>
+                </form>
+
+                <p class="text-center text-muted mt-3 mb-0">
+                    Chưa có tài khoản? 
+                    <a asp-action="Register" class="text-success text-decoration-none fw-bold">Đăng ký</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        (function () {
+            'use strict';
+            window.addEventListener('load', function () {
+                var forms = document.querySelectorAll('form');
+                Array.prototype.slice.call(forms).forEach(function (form) {
+                    form.addEventListener('submit', function (event) {
+                        if (!form.checkValidity()) {
+                            event.preventDefault();
+                            event.stopPropagation();
+                        }
+                    }, false);
+                });
+            });
+        })();
+    </script>
+}

@@ -1,0 +1,266 @@
+/* ============================================================
+   notification.css  –  Hệ thống thông báo kiểu Momo/MBBank
+   ============================================================ */
+
+/* ─── Bell button ─────────────────────────────────────────── */
+.notif-btn {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border: none;
+    background: transparent;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: background 0.18s;
+    color: #555;
+    font-size: 20px;
+    flex-shrink: 0;
+}
+.notif-btn:hover {
+    background: rgba(39, 174, 96, 0.10);
+    color: #27ae60;
+}
+.notif-btn:focus { outline: none; }
+
+/* ─── Unread badge ────────────────────────────────────────── */
+.notif-badge {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 4px;
+    background: #e74c3c;
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    border-radius: 9px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    pointer-events: none;
+    animation: notif-pop 0.25s ease;
+}
+.notif-badge.hidden { display: none; }
+
+@keyframes notif-pop {
+    0%   { transform: scale(0.5); opacity: 0; }
+    70%  { transform: scale(1.2); }
+    100% { transform: scale(1);   opacity: 1; }
+}
+
+/* ─── Dropdown panel ──────────────────────────────────────── */
+.notif-panel {
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 0;
+    width: 360px;
+    max-width: 95vw;
+    background: #fff;
+    border-radius: 14px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.14);
+    z-index: 9999;
+    display: none;
+    overflow: hidden;
+    border: 1px solid #ececec;
+}
+.notif-panel.open { display: flex; flex-direction: column; }
+
+/* ─── Panel header ────────────────────────────────────────── */
+.notif-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px 10px;
+    border-bottom: 1px solid #f0f0f0;
+}
+.notif-header-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: #222;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+}
+.notif-header-title span.cnt {
+    background: #27ae60;
+    color: #fff;
+    font-size: 11px;
+    padding: 1px 7px;
+    border-radius: 20px;
+}
+.notif-mark-all {
+    font-size: 12px;
+    color: #27ae60;
+    cursor: pointer;
+    background: none;
+    border: none;
+    padding: 3px 6px;
+    border-radius: 6px;
+    transition: background 0.15s;
+    font-weight: 600;
+}
+.notif-mark-all:hover { background: #eafaf1; }
+
+/* ─── Scrollable list ─────────────────────────────────────── */
+.notif-list {
+    overflow-y: auto;
+    max-height: 420px;
+}
+.notif-list::-webkit-scrollbar { width: 4px; }
+.notif-list::-webkit-scrollbar-thumb { background: #ddd; border-radius: 4px; }
+
+/* ─── Single item ─────────────────────────────────────────── */
+.notif-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 13px 16px;
+    border-bottom: 1px solid #f7f7f7;
+    cursor: pointer;
+    transition: background 0.15s;
+    position: relative;
+}
+.notif-item:last-child { border-bottom: none; }
+.notif-item:hover { background: #f9fefb; }
+.notif-item.unread { background: #f3fbf6; }
+.notif-item.unread::before {
+    content: '';
+    position: absolute;
+    left: 6px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 6px;
+    height: 6px;
+    background: #27ae60;
+    border-radius: 50%;
+}
+
+/* ─── Icon circle ─────────────────────────────────────────── */
+.notif-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+}
+.notif-icon.type-GiaoDich-thu  { background: #e8f8ef; }
+.notif-icon.type-GiaoDich-chi  { background: #fff4f4; }
+.notif-icon.type-SapHetTien    { background: #fff0f0; }
+.notif-icon.type-ChiTieuLon    { background: #fff8e1; }
+.notif-icon.type-NganSach      { background: #e8f4fb; }
+
+/* ─── Text ────────────────────────────────────────────────── */
+.notif-body { flex: 1; min-width: 0; }
+.notif-title {
+    font-size: 13.5px;
+    font-weight: 600;
+    color: #222;
+    margin-bottom: 3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.notif-item.unread .notif-title { color: #1a7a45; }
+.notif-content {
+    font-size: 12.5px;
+    color: #666;
+    line-height: 1.45;
+    word-break: break-word;
+    white-space: pre-line;
+}
+.notif-time {
+    font-size: 11px;
+    color: #aaa;
+    margin-top: 4px;
+}
+
+/* ─── Empty state ─────────────────────────────────────────── */
+.notif-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    color: #bbb;
+    gap: 10px;
+}
+.notif-empty i { font-size: 38px; }
+.notif-empty span { font-size: 14px; }
+
+/* ─── Wrapper (parent of btn + panel) ────────────────────── */
+.notif-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+/* ─── Toast-style popup (biến động số dư nổi lên) ─────────── */
+.notif-toast-container {
+    position: fixed;
+    bottom: 28px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 99999;
+    display: flex;
+    flex-direction: column-reverse;
+    gap: 10px;
+    pointer-events: none;
+    width: min(380px, 92vw);
+}
+.notif-toast {
+    background: #fff;
+    border-radius: 14px;
+    box-shadow: 0 6px 24px rgba(0,0,0,0.15);
+    padding: 13px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    pointer-events: auto;
+    animation: notif-slide-up 0.35s cubic-bezier(.22,.68,0,1.2) forwards;
+    border-left: 4px solid #27ae60;
+}
+.notif-toast.warning { border-left-color: #e74c3c; }
+.notif-toast.caution { border-left-color: #f39c12; }
+.notif-toast-icon { font-size: 26px; flex-shrink: 0; }
+.notif-toast-body { flex: 1; min-width: 0; }
+.notif-toast-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #222;
+    margin-bottom: 2px;
+}
+.notif-toast-msg {
+    font-size: 12px;
+    color: #555;
+    line-height: 1.4;
+    white-space: pre-line;
+}
+.notif-toast-close {
+    background: none;
+    border: none;
+    font-size: 16px;
+    color: #bbb;
+    cursor: pointer;
+    padding: 0 2px;
+    line-height: 1;
+}
+.notif-toast-close:hover { color: #888; }
+
+@keyframes notif-slide-up {
+    from { opacity: 0; transform: translateY(20px) scale(0.96); }
+    to   { opacity: 1; transform: translateY(0)    scale(1);    }
+}
+.notif-toast.fade-out {
+    animation: notif-fade-out 0.3s ease forwards;
+}
+@keyframes notif-fade-out {
+    to { opacity: 0; transform: translateY(10px) scale(0.96); }
+}

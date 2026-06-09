@@ -1,0 +1,12 @@
+# Visual Studio
+.vs/
+*.user
+*.suo
+bin/
+obj/
+
+# User-specific
+*.db
+*.opensdf
+*.opendb
+.fake
