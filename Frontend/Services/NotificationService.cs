@@ -6,45 +6,21 @@ namespace Frontend.Services
 {
     public interface INotificationService
     {
-        /// <summary>
-        /// Tạo thông báo biến động số dư (giống Momo/ngân hàng)
-        /// </summary>
+
         Task TaoThongBaoGiaoDichAsync(int userId, decimal soTien, string tenDanhMuc, bool laThu, decimal soDuSauGiaoDich, string? ghiChu);
 
-        /// <summary>
-        /// Kiểm tra và tạo cảnh báo nếu số dư dưới 100.000đ
-        /// </summary>
         Task KiemTraCanhBaoSapHetTienAsync(int userId, decimal soDuHienTai);
 
-        /// <summary>
-        /// Kiểm tra và tạo cảnh báo nếu giao dịch chi tiêu quá lớn
-        /// Ngưỡng: > 5.000.000đ hoặc > 30% ngân sách tháng
-        /// </summary>
         Task KiemTraCanhBaoChiTieuLonAsync(int userId, decimal soTien, string tenDanhMuc, decimal? nganSachThang);
 
-        /// <summary>
-        /// Lấy danh sách thông báo (mới nhất trước), giới hạn 50 cái
-        /// </summary>
         Task<List<ThongBao>> LayDanhSachThongBaoAsync(int userId, int take = 50);
 
-        /// <summary>
-        /// Lấy số thông báo chưa đọc
-        /// </summary>
         Task<int> LaySoThongBaoChuaDocAsync(int userId);
 
-        /// <summary>
-        /// Đánh dấu tất cả thông báo là đã đọc
-        /// </summary>
         Task DanhDauTatCaDaDocAsync(int userId);
 
-        /// <summary>
-        /// Đánh dấu 1 thông báo là đã đọc
-        /// </summary>
         Task DanhDauDaDocAsync(int userId, int maThongBao);
 
-        /// <summary>
-        /// Tạo thông báo chung
-        /// </summary>
         Task TaoThongBaoAsync(int userId, string tieuDe, string noiDung, string loaiThongBao, string? bieuTuong);
     }
 
@@ -53,10 +29,9 @@ namespace Frontend.Services
         private readonly AppDbContext _context;
         private readonly ILogger<NotificationService> _logger;
 
-        // ─── Ngưỡng cảnh báo ────────────────────────────────────────────────
-        private const decimal NGUONG_SAP_HET_TIEN = 100_000m;          // 100.000đ
-        private const decimal NGUONG_CHI_TIEU_LON_TUYET_DOI = 5_000_000m; // 5 triệu đồng
-        private const decimal NGUONG_CHI_TIEU_LON_PHAN_TRAM = 0.30m;   // 30% ngân sách tháng
+        private const decimal NGUONG_SAP_HET_TIEN = 100_000m;
+        private const decimal NGUONG_CHI_TIEU_LON_TUYET_DOI = 5_000_000m;
+        private const decimal NGUONG_CHI_TIEU_LON_PHAN_TRAM = 0.30m;
 
         public NotificationService(AppDbContext context, ILogger<NotificationService> logger)
         {
@@ -80,7 +55,6 @@ namespace Frontend.Services
                 if (!string.IsNullOrWhiteSpace(ghiChu))
                     noiDung += $" • {ghiChu}";
 
-                // ✅ Lấy ngân sách tháng còn lại từ SoTienHanMuc (giá trị CÒN LẠI - đã trừ)
                 var thangHienTai = DateTime.Now;
                 var nganSachThang = await _context.NganSach
                     .FirstOrDefaultAsync(ns => ns.MaNguoiDung == userId
@@ -91,7 +65,6 @@ namespace Frontend.Services
                 decimal soDuNganSachConLai = soDuSauGiaoDich;  // Giá trị mặc định
                 if (nganSachThang != null && nganSachThang.SoTienHanMuc >= 0)
                 {
-                    // ✅ SoTienHanMuc = giá trị CÒN LẠI (đã được trừ)
                     soDuNganSachConLai = nganSachThang.SoTienHanMuc;
                 }
 
@@ -105,34 +78,25 @@ namespace Frontend.Services
             }
         }
 
-        // ─────────────────────────────────────────────────────────────────────
-        // Cảnh báo sắp hết tiền
-        // ─────────────────────────────────────────────────────────────────────
         public async Task KiemTraCanhBaoSapHetTienAsync(int userId, decimal soDuHienTai)
         {
             try
             {
-                // ✅ Chỉ tạo cảnh báo nếu ngân sách tháng CÒN LẠI < 100k
-                // Bỏ check "số dư hiện tại < 100k"
                 var thangHienTai = DateTime.Now;
                 var nganSachThang = await _context.NganSach
                     .FirstOrDefaultAsync(ns => ns.MaNguoiDung == userId
-                                           && ns.MaDanhMuc == null  // Ngân sách chung tháng
+                                           && ns.MaDanhMuc == null
                                            && ns.NgayBatDau.Month == thangHienTai.Month
                                            && ns.NgayBatDau.Year == thangHienTai.Year);
 
-                // Nếu không có ngân sách tháng, không cảnh báo
                 if (nganSachThang == null)
                     return;
 
-                // ✅ Lấy ngân sách còn lại từ SoTienHanMuc (giá trị CÒN LẠI)
                 decimal soDuNganSachConLai = nganSachThang.SoTienHanMuc;
 
-                // Chỉ tạo cảnh báo nếu ngân sách tháng còn < 100k
                 if (soDuNganSachConLai >= NGUONG_SAP_HET_TIEN)
                     return;
 
-                // Tránh spam: không tạo nếu trong 30 phút vừa rồi đã có cảnh báo tương tự
                 var thoiGianGanNhat = DateTime.Now.AddMinutes(-30);
                 bool daCoCanHBao = await _context.ThongBao
                     .AnyAsync(t => t.MaNguoiDung == userId
@@ -140,7 +104,6 @@ namespace Frontend.Services
                                 && t.NgayTao >= thoiGianGanNhat);
                 if (daCoCanHBao) return;
 
-                // ✅ Nội dung cảnh báo: "Số dư tài khoản của bạn còn (...) hãy chú ý ngân sách chi tiêu"
                 string tieuDe = "⚠️ Cảnh báo ngân sách!";
                 string noiDung = $"Số dư tài khoản của bạn còn ({soDuNganSachConLai:N0}đ) hãy chú ý ngân sách chi tiêu";
 
@@ -151,10 +114,6 @@ namespace Frontend.Services
                 _logger.LogError(ex, "Lỗi khi kiểm tra cảnh báo sắp hết tiền");
             }
         }
-
-        // ─────────────────────────────────────────────────────────────────────
-        // Cảnh báo chi tiêu lớn
-        // ─────────────────────────────────────────────────────────────────────
         public async Task KiemTraCanhBaoChiTieuLonAsync(
             int userId, decimal soTien, string tenDanhMuc, decimal? nganSachThang)
         {
@@ -195,10 +154,6 @@ namespace Frontend.Services
                 _logger.LogError(ex, "Lỗi khi kiểm tra cảnh báo chi tiêu lớn");
             }
         }
-
-        // ─────────────────────────────────────────────────────────────────────
-        // Truy vấn
-        // ─────────────────────────────────────────────────────────────────────
         public async Task<List<ThongBao>> LayDanhSachThongBaoAsync(int userId, int take = 50)
         {
             return await _context.ThongBao
@@ -236,8 +191,6 @@ namespace Frontend.Services
                 await _context.SaveChangesAsync();
             }
         }
-
-        // ✅ Tạo thông báo chung (generic)
         public async Task TaoThongBaoAsync(
             int userId, string tieuDe, string noiDung, string loaiThongBao, string? bieuTuong)
         {
@@ -251,9 +204,6 @@ namespace Frontend.Services
             }
         }
 
-        // ─────────────────────────────────────────────────────────────────────
-        // Internal helper
-        // ─────────────────────────────────────────────────────────────────────
         private async Task _LuuThongBaoAsync(
             int userId, string tieuDe, string noiDung, string loai, string? bieuTuong)
         {

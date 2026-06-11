@@ -104,7 +104,6 @@
     </div>
 </div>
 
-<!-- Icon Picker Modal -->
 <div class="modal fade" id="iconPickerModal" tabindex="-1" aria-labelledby="iconPickerLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -114,7 +113,6 @@
             </div>
             <div class="modal-body">
                 <div id="iconGrid" class="icon-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(50px, 1fr)); gap: 10px;">
-                    <!-- Icons will be populated by JavaScript -->
                 </div>
             </div>
         </div>
@@ -153,52 +151,43 @@
 </style>
 
 <script>
-    // Danh sách các biểu tượng phổ biến cho danh mục chi tiêu/thu nhập
     const availableIcons = [
-        // Chi tiêu - Ăn uống
         { icon: 'bi bi-cup-straw', name: 'Nước uống' },
         { icon: 'bi bi-egg-fried', name: 'Ăn sáng' },
         { icon: 'bi bi-cup-hot', name: 'Cà phê' },
         { icon: 'bi bi-basket', name: 'Thực phẩm' },
         
-        // Chi tiêu - Di chuyển
         { icon: 'bi bi-car-front', name: 'Xe hơi' },
         { icon: 'bi bi-bicycle', name: 'Xe đạp' },
         { icon: 'bi bi-bus-front', name: 'Xe buýt' },
         { icon: 'bi bi-airplane', name: 'Máy bay' },
         
-        // Chi tiêu - Mua sắm
         { icon: 'bi bi-bag-check', name: 'Quần áo' },
         { icon: 'bi bi-cart-check', name: 'Mua sắm' },
         { icon: 'bi bi-shop', name: 'Cửa hàng' },
         { icon: 'bi bi-gift', name: 'Quà tặng' },
         
-        // Chi tiêu - Sức khỏe
         { icon: 'bi bi-hospital', name: 'Bệnh viện' },
         { icon: 'bi bi-capsule', name: 'Thuốc' },
         { icon: 'bi bi-heart-pulse', name: 'Sức khỏe' },
         { icon: 'bi bi-eyeglasses', name: 'Kính mắt' },
         
-        // Chi tiêu - Giáo dục
         { icon: 'bi bi-book', name: 'Sách vở' },
         { icon: 'bi bi-mortarboard', name: 'Học tập' },
         { icon: 'bi bi-pencil-square', name: 'Bài tập' },
         { icon: 'bi bi-laptop', name: 'Máy tính' },
         
-        // Chi tiêu - Nhà cửa
         { icon: 'bi bi-house', name: 'Nhà ở' },
         { icon: 'bi bi-lightbulb', name: 'Điện' },
         { icon: 'bi bi-droplet', name: 'Nước' },
         { icon: 'bi bi-tools', name: 'Sửa chữa' },
         
-        // Thu nhập
         { icon: 'bi bi-briefcase', name: 'Lương' },
         { icon: 'bi bi-coin', name: 'Tiền xu' },
         { icon: 'bi bi-graph-up', name: 'Đầu tư' },
         { icon: 'bi bi-piggy-bank', name: 'Tiết kiệm' },
         { icon: 'bi bi-cash-coin', name: 'Tiền mặt' },
         
-        // Khác
         { icon: 'bi bi-question-circle', name: 'Khác' },
         { icon: 'bi bi-star', name: 'Yêu thích' },
         { icon: 'bi bi-heart', name: 'Yêu thương' },
@@ -231,14 +220,11 @@
     }
 
     function selectIcon(iconClass) {
-        // Update hidden input
         document.getElementById('BieuTuongInput').value = iconClass;
         
-        // Update preview
         const previewIcon = document.getElementById('previewIcon');
         previewIcon.className = iconClass;
         
-        // Update selected state
         document.querySelectorAll('.icon-item').forEach(item => {
             item.classList.remove('selected');
             if (item.querySelector('i').className === iconClass) {
@@ -246,46 +232,36 @@
             }
         });
         
-        // Close icon picker modal and return to create modal
         const iconPickerModalEl = document.getElementById('iconPickerModal');
         const createModalEl = document.getElementById('createModal');
         
-        // Register event handler BEFORE hiding the modal
         const handler = function() {
-            // Re-show create modal
             const createModal = bootstrap.Modal.getInstance(createModalEl);
             if (!createModal) {
                 new bootstrap.Modal(createModalEl).show();
             } else {
                 createModal.show();
             }
-            // Focus on name input to help user continue
             const nameInput = createModalEl.querySelector('input[name="TenDanhMuc"]');
             if (nameInput) {
                 setTimeout(() => nameInput.focus(), 100);
             }
-            // Remove listener to avoid duplicate calls
             iconPickerModalEl.removeEventListener('hidden.bs.modal', handler);
         };
         
         iconPickerModalEl.addEventListener('hidden.bs.modal', handler);
-        
-        // Now hide the icon picker modal
         const iconPickerModal = bootstrap.Modal.getInstance(iconPickerModalEl);
         if (iconPickerModal) {
             iconPickerModal.hide();
         }
     }
 
-    // Initialize when page loads
     document.addEventListener('DOMContentLoaded', function() {
         initializeIconPicker();
         
-        // Handle nested modal backdrop properly
         const iconPickerModalEl = document.getElementById('iconPickerModal');
         
         iconPickerModalEl.addEventListener('show.bs.modal', function() {
-            // Reduce backdrop opacity for nested modal
             document.querySelector('.modal-backdrop')?.style.setProperty('opacity', '0.3', 'important');
         });
     });

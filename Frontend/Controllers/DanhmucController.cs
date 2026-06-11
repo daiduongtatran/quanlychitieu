@@ -20,7 +20,6 @@ namespace Frontend.Controllers
             _userService = userService;
         }
 
-        // Hiển thị danh sách danh mục của User
         public async Task<IActionResult> Index()
         {
             var userId = HttpContext.Session.GetInt32("UserId");
@@ -29,7 +28,6 @@ namespace Frontend.Controllers
                 return RedirectToAction("Login", "Account");
             }
 
-            // Set user name for avatar
             var user = await _userService.GetUserByIdAsync(userId.Value);
             if (user != null)
             {
@@ -40,7 +38,6 @@ namespace Frontend.Controllers
                 .Where(d => d.MaNguoiDung == userId.Value)
                 .ToListAsync();
 
-            // Nếu người dùng chưa có danh mục nào, tạo danh mục mặc định
             if (!danhMucs.Any())
             {
                 await CreateDefaultCategoriesAsync(userId.Value);
@@ -52,7 +49,6 @@ namespace Frontend.Controllers
             return View(danhMucs);
         }
 
-        // Xử lý thêm danh mục mới
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(DanhMuc danhMuc)
@@ -63,7 +59,6 @@ namespace Frontend.Controllers
                 return RedirectToAction("Login", "Account");
             }
 
-            // Set user name for avatar
             var user = await _userService.GetUserByIdAsync(userId.Value);
             if (user != null)
             {
@@ -72,7 +67,6 @@ namespace Frontend.Controllers
 
             danhMuc.MaNguoiDung = userId.Value;
 
-            // Loại bỏ kiểm tra ràng buộc tự động của NguoiDung và GiaoDich khi gửi từ Form
             ModelState.Remove("NguoiDung");
             ModelState.Remove("GiaoDich");
 
@@ -89,7 +83,6 @@ namespace Frontend.Controllers
             return View(nameof(Index), danhMucs);
         }
 
-        // Xử lý xóa danh mục
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(int id)
@@ -112,14 +105,13 @@ namespace Frontend.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        // Tạo danh mục mặc định cho người dùng
         private async Task CreateDefaultCategoriesAsync(int userId)
         {
             try
             {
                 var defaultCategories = new List<DanhMuc>
                 {
-                    // Danh mục Chi tiêu
+
                     new DanhMuc { TenDanhMuc = "Ăn uống", LoaiDanhMuc = "Chi", BieuTuong = "☕", MaNguoiDung = userId },
                     new DanhMuc { TenDanhMuc = "Di chuyển", LoaiDanhMuc = "Chi", BieuTuong = "🚗", MaNguoiDung = userId },
                     new DanhMuc { TenDanhMuc = "Mua sắm", LoaiDanhMuc = "Chi", BieuTuong = "🛒", MaNguoiDung = userId },
@@ -128,8 +120,7 @@ namespace Frontend.Controllers
                     new DanhMuc { TenDanhMuc = "Nhà cửa", LoaiDanhMuc = "Chi", BieuTuong = "🏠", MaNguoiDung = userId },
                     new DanhMuc { TenDanhMuc = "Giải trí", LoaiDanhMuc = "Chi", BieuTuong = "🎬", MaNguoiDung = userId },
                     new DanhMuc { TenDanhMuc = "Khác", LoaiDanhMuc = "Chi", BieuTuong = "❓", MaNguoiDung = userId },
-                    
-                    // Danh mục Thu nhập
+
                     new DanhMuc { TenDanhMuc = "Lương", LoaiDanhMuc = "Thu", BieuTuong = "💼", MaNguoiDung = userId },
                     new DanhMuc { TenDanhMuc = "Tiền thưởng", LoaiDanhMuc = "Thu", BieuTuong = "🎁", MaNguoiDung = userId },
                     new DanhMuc { TenDanhMuc = "Đầu tư", LoaiDanhMuc = "Thu", BieuTuong = "📈", MaNguoiDung = userId },
@@ -141,7 +132,7 @@ namespace Frontend.Controllers
             }
             catch (Exception ex)
             {
-                // Log lỗi nếu cần, nhưng không ném exception
+
                 System.Diagnostics.Debug.WriteLine($"Error creating default categories: {ex.Message}");
             }
         }

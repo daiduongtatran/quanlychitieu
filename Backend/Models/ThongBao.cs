@@ -16,20 +16,10 @@ namespace Backend.Models
         [Required]
         public string NoiDung { get; set; } = string.Empty;
 
-        /// <summary>
-        /// Loại thông báo:
-        ///   'GiaoDich'   - Biến động số dư (thu/chi)
-        ///   'SapHetTien' - Cảnh báo sắp hết tiền (dưới 100.000đ)
-        ///   'ChiTieuLon' - Cảnh báo chi tiêu lớn trong 1 lần
-        ///   'NganSach'   - Cảnh báo vượt/gần vượt ngân sách
-        /// </summary>
         [Required]
         [StringLength(50)]
         public string LoaiThongBao { get; set; } = string.Empty;
 
-        /// <summary>
-        /// Icon hiển thị kèm thông báo (emoji)
-        /// </summary>
         [StringLength(10)]
         public string? BieuTuong { get; set; }
 

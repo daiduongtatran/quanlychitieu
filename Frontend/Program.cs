@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.EntityFrameworkCore;
 using Backend.Data;
 using Backend.Services;
@@ -18,13 +17,6 @@ builder.Services.AddControllersWithViews()
     {
         options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
     });
-
-// Custom view locations to support Views/Pages/{ControllerName}
-builder.Services.Configure<RazorViewEngineOptions>(options =>
-{
-    options.ViewLocationFormats.Add("/Views/Pages/{1}/{0}.cshtml");
-    options.PageViewLocationFormats.Add("/Views/Pages/{1}/{0}.cshtml");
-});
 
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>

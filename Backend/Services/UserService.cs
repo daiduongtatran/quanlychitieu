@@ -67,7 +67,6 @@ namespace Backend.Services
                 _context.NguoiDung.Add(newUser);
                 await _context.SaveChangesAsync();
 
-                // Tạo các danh mục mặc định cho người dùng mới
                 await CreateDefaultCategoriesAsync(newUser.MaNguoiDung);
 
                 _logger.LogInformation($"User registered successfully: {email}");

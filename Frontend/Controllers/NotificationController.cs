@@ -11,9 +11,6 @@ namespace Frontend.Controllers
         {
             _notificationService = notificationService;
         }
-
-        // ─── GET /Notification/GetCount ──────────────────────────────────────
-        /// <summary>Trả về số thông báo chưa đọc (cho badge trên chuông)</summary>
         [HttpGet]
         public async Task<IActionResult> GetCount()
         {
@@ -23,9 +20,6 @@ namespace Frontend.Controllers
             var count = await _notificationService.LaySoThongBaoChuaDocAsync(userId.Value);
             return Json(new { count });
         }
-
-        // ─── GET /Notification/GetList ───────────────────────────────────────
-        /// <summary>Trả về danh sách 50 thông báo gần nhất dưới dạng JSON</summary>
         [HttpGet]
         public async Task<IActionResult> GetList()
         {
@@ -48,9 +42,6 @@ namespace Frontend.Controllers
 
             return Json(new { success = true, items = result });
         }
-
-        // ─── POST /Notification/MarkAllRead ──────────────────────────────────
-        /// <summary>Đánh dấu tất cả thông báo là đã đọc</summary>
         [HttpPost]
         public async Task<IActionResult> MarkAllRead()
         {
@@ -60,9 +51,6 @@ namespace Frontend.Controllers
             await _notificationService.DanhDauTatCaDaDocAsync(userId.Value);
             return Json(new { success = true });
         }
-
-        // ─── POST /Notification/MarkRead/{id} ────────────────────────────────
-        /// <summary>Đánh dấu 1 thông báo là đã đọc</summary>
         [HttpPost]
         public async Task<IActionResult> MarkRead(int id)
         {

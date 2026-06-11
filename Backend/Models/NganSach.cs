@@ -17,9 +17,6 @@ namespace Backend.Models
             
             public DateTime NgayBatDau { get; set; }
             public DateTime NgayKetThuc { get; set; }
-
-            // MaDanhMuc = NULL → Ngân sách chung (tháng)
-            // MaDanhMuc = ID → Ngân sách danh mục (loại chi tiêu cụ thể)
             public int? MaDanhMuc { get; set; }
             [ForeignKey("MaDanhMuc")]
             public DanhMuc? DanhMuc { get; set; }

@@ -130,7 +130,6 @@
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             
-            // 1. Cấu hình Biểu đồ Tròn (Pie Chart)
             const pieDataString = '@Html.Raw(ViewBag.PieData)';
             if (pieDataString && pieDataString !== '[]') {
                 const pieCtx = document.getElementById('expensePieChart').getContext('2d');
@@ -151,7 +150,7 @@
                     options: {
                         responsive: true,
                         plugins: {
-                            legend: { display: false }, // Ẩn legend mặc định vì đã tạo list custom bên dưới
+                            legend: { display: false },
                             tooltip: {
                                 callbacks: {
                                     label: function(context) {
@@ -163,12 +162,11 @@
                                 }
                             }
                         },
-                        cutout: '65%' // Tạo khoảng trống ở giữa để giống Momo
+                        cutout: '65%'
                     }
                 });
             }
 
-            // 2. Cấu hình Biểu đồ Xu hướng (Bar Chart)
             const trendCtx = document.getElementById('trendChart').getContext('2d');
             new Chart(trendCtx, {
                 type: 'bar',
@@ -205,8 +203,7 @@
         beginAtZero: true,
         ticks: {
             callback: function(value) {
-                return value.toLocaleString('vi-VN'); // Tự động thêm dấu chấm phân cách 100.000, 1.000.000
-            }
+                return value.toLocaleString('vi-VN');
         }
     }
 },

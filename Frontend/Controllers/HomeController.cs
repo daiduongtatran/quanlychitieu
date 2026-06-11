@@ -55,10 +55,6 @@ namespace Frontend.Controllers
             return View();
         }
 
-        /// <summary>
-        /// Thiết lập ngân sách tháng cho người dùng
-        /// Lưu cả SoTienHanMuc (hạn mức) và SoTienNganSachThang (tổng tiền nhập vào)
-        /// </summary>
         [HttpPost]
         public async Task<IActionResult> ThemNganSach(
             string LoaiNganSach, 
@@ -75,17 +71,8 @@ namespace Frontend.Controllers
 
             try
             {
-                // ─────────────────────────────────────────────────────────────
-                // Trường hợp: Thiết lập NGÂN SÁCH CHUNG (tháng)
-                // ─────────────────────────────────────────────────────────────
                 if (LoaiNganSach == "Thang")
                 {
-                    // ⚠️ LOGIC:
-                    // - SoTienNganSachThang = Giá trị GỐC (không đổi, dùng để tính %)
-                    // - SoTienHanMuc = Giá trị CÒN LẠI (được trừ trực tiếp mỗi khi chi)
-                    
-                    // ✅ CẬP NHẬT hoặc TẠO MỚI (không xóa!)
-                    // Tìm theo tháng hiện tại, không phải ngày cụ thể (vì user có thể nhập ngày khác)
                     var currentDate = DateTime.Now;
                     var monthStart = new DateTime(currentDate.Year, currentDate.Month, 1);
                     var monthEnd = new DateTime(currentDate.Year, currentDate.Month, DateTime.DaysInMonth(currentDate.Year, currentDate.Month));
@@ -98,26 +85,22 @@ namespace Frontend.Controllers
                     
                     if (nganSachCu != null)
                     {
-                        // ✅ Cập nhật ngân sách hiện tại (giữ lại giao dịch cũ)
-                        // Tính tiền đã chi tiêu từ trước = Gốc_cũ - Còn_lại_cũ
                         decimal soTienDaChiTieu = (nganSachCu.SoTienNganSachThang ?? 0) - nganSachCu.SoTienHanMuc;
                         
-                        // Cập nhật gốc mới, ngày mới, và tính lại còn lại (trừ đi tiền đã chi)
-                        nganSachCu.SoTienNganSachThang = SoTienHanMuc;  // Cập nhật giá trị gốc
-                        nganSachCu.SoTienHanMuc = SoTienHanMuc - soTienDaChiTieu;  // Còn lại = Gốc_mới - Đã_chi
-                        nganSachCu.NgayBatDau = NgayBatDau;  // Cập nhật ngày bắt đầu
-                        nganSachCu.NgayKetThuc = NgayKetThuc;  // Cập nhật ngày kết thúc
+                        nganSachCu.SoTienNganSachThang = SoTienHanMuc;
+                        nganSachCu.SoTienHanMuc = SoTienHanMuc - soTienDaChiTieu;
+                        nganSachCu.NgayBatDau = NgayBatDau;
+                        nganSachCu.NgayKetThuc = NgayKetThuc;
                         _logger.LogInformation($"[User {userId}] Cập nhật ngân sách tháng: {SoTienHanMuc:N0}đ (đã chi: {soTienDaChiTieu:N0}đ, còn: {nganSachCu.SoTienHanMuc:N0}đ)");
                     }
                     else
                     {
-                        // Tạo ngân sách tháng mới (không có giao dịch cũ)
                         var nganSachThangMoi = new NganSach
                         {
                             MaNguoiDung = userId.Value,
-                            MaDanhMuc = null,                    // NULL = Ngân sách chung
-                            SoTienHanMuc = SoTienHanMuc,         // ✅ CÒN LẠI (sẽ bị trừ)
-                            SoTienNganSachThang = SoTienHanMuc,  // ✅ GỐC (không đổi)
+                            MaDanhMuc = null,
+                            SoTienHanMuc = SoTienHanMuc,
+                            SoTienNganSachThang = SoTienHanMuc,
                             NgayBatDau = NgayBatDau,
                             NgayKetThuc = NgayKetThuc
                         };
@@ -125,12 +108,8 @@ namespace Frontend.Controllers
                         _logger.LogInformation($"[User {userId}] Thiết lập ngân sách tháng mới: {SoTienHanMuc:N0}đ");
                     }
                 }
-                // ─────────────────────────────────────────────────────────────
-                // Trường hợp: Thiết lập NGÂN SÁCH DANH MỤC
-                // ─────────────────────────────────────────────────────────────
                 else 
                 {
-                    // Kiểm tra xem danh mục này trong tháng này đã có ngân sách chưa
                     var nganSachDanhMucCu = await _context.NganSach
                         .FirstOrDefaultAsync(n => n.MaNguoiDung == userId.Value && 
                                n.MaDanhMuc == MaDanhMuc && 
@@ -139,21 +118,19 @@ namespace Frontend.Controllers
                     
                     if (nganSachDanhMucCu != null)
                     {
-                        // ✅ Reset hạn mức (không tính tiền đã chi - đặt ngân sách 1 lần)
-                        nganSachDanhMucCu.SoTienNganSachThang = SoTienHanMuc;  // Hạn mức gốc
-                        nganSachDanhMucCu.SoTienHanMuc = SoTienHanMuc;  // Reset = hạn mức
-                        nganSachDanhMucCu.NgayBatDau = NgayBatDau;  // Cập nhật ngày
+                        nganSachDanhMucCu.SoTienNganSachThang = SoTienHanMuc;
+                        nganSachDanhMucCu.SoTienHanMuc = SoTienHanMuc;
+                        nganSachDanhMucCu.NgayBatDau = NgayBatDau;
                         nganSachDanhMucCu.NgayKetThuc = NgayKetThuc;
                         _logger.LogInformation($"[User {userId}] Cập nhật ngân sách danh mục {MaDanhMuc}: {SoTienHanMuc:N0}đ");
                     }
                     else
                     {
-                        // Nếu chưa tồn tại → Thêm mới
                         var nganSachDanhMucMoi = new NganSach
                         {
                             MaNguoiDung = userId.Value,
                             MaDanhMuc = MaDanhMuc,
-                            SoTienNganSachThang = SoTienHanMuc,  // ✅ Lưu gốc để tính tiền đã chi
+                            SoTienNganSachThang = SoTienHanMuc,
                             SoTienHanMuc = SoTienHanMuc,
                             NgayBatDau = NgayBatDau,
                             NgayKetThuc = NgayKetThuc
@@ -172,10 +149,6 @@ namespace Frontend.Controllers
 
             return RedirectToAction("Dashboard"); 
         }
-
-        /// <summary>
-        /// Thêm giao dịch mới với VALIDATION ngân sách
-        /// </summary>
         [HttpPost] 
         public async Task<IActionResult> ThemGiaoDich(
             decimal SoTien, 
@@ -196,9 +169,6 @@ namespace Frontend.Controllers
 
             try
             {
-                // ═══════════════════════════════════════════════════════════════
-                // STEP 1: VALIDATE NGÂN SÁCH
-                // ═══════════════════════════════════════════════════════════════
                 var (isValid, validationMessage) = await _expenseTrackingService.CanAddTransactionAsync(
                     SoTien,
                     MaDanhMuc,
@@ -208,8 +178,6 @@ namespace Frontend.Controllers
                 if (!isValid)
                 {
                     _logger.LogWarning($"[User {userId}] Giao dịch bị từ chối: {validationMessage}");
-                    
-                    // ✅ Tạo thông báo cảnh báo lưu vào DB
                     await _notificationService.TaoThongBaoAsync(
                         userId.Value,
                         "⛔ Giao dịch bị từ chối",
@@ -221,10 +189,6 @@ namespace Frontend.Controllers
                     TempData["Error"] = validationMessage;
                     return RedirectToAction("Dashboard");
                 }
-
-                // ═══════════════════════════════════════════════════════════════
-                // STEP 2: THÊM GIAO DỊCH
-                // ═══════════════════════════════════════════════════════════════
                 var giaoDichMoi = new Backend.Models.GiaoDich
                 {
                     SoTien = SoTien,
@@ -238,10 +202,6 @@ namespace Frontend.Controllers
                 };
 
                 _context.GiaoDich.Add(giaoDichMoi);
-
-                // ═══════════════════════════════════════════════════════════════
-                // STEP 3: CẬP NHẬT NGÂN SÁCH VÀ SỐ DƯ TÀI KHOẢN
-                // ═══════════════════════════════════════════════════════════════
                 var danhMuc = await _context.DanhMuc.FindAsync(MaDanhMuc);
                 var nguoiDung = await _context.NguoiDung.FindAsync(userId.Value);
 
@@ -251,11 +211,8 @@ namespace Frontend.Controllers
                     
                     if (laThu)
                     {
-                        // ═══ THU TIỀN ═══
-                        // 1. Cộng tiền vào số dư tài khoản
                         nguoiDung.SoDuTaiKhoan += SoTien;
                         
-                        // 2. Cộng SoTienHanMuc + SoTienNganSachThang (ngân sách chung tăng lên)
                         var nganSachChung = await _context.NganSach
                             .FirstOrDefaultAsync(n => n.MaNguoiDung == userId.Value && 
                                    n.MaDanhMuc == null && 
@@ -264,19 +221,16 @@ namespace Frontend.Controllers
                         
                         if (nganSachChung != null)
                         {
-                            nganSachChung.SoTienNganSachThang = (nganSachChung.SoTienNganSachThang ?? 0) + SoTien;  // Cộng vào gốc
-                            nganSachChung.SoTienHanMuc += SoTien;  // Cộng vào còn lại
+                            nganSachChung.SoTienNganSachThang = (nganSachChung.SoTienNganSachThang ?? 0) + SoTien;
+                            nganSachChung.SoTienHanMuc += SoTien;
                         }
                         
                         _logger.LogInformation($"[User {userId}] Thu tiền: {SoTien:N0}đ từ {danhMuc.TenDanhMuc}");
                     }
                     else
                     {
-                        // ═══ CHI TIỀN ═══
-                        // 1. Trừ tiền từ số dư tài khoản
                         nguoiDung.SoDuTaiKhoan -= SoTien;
                         
-                        // 2. Trừ SoTienHanMuc (ngân sách chung còn lại - được trừ trực tiếp)
                         var nganSachChung = await _context.NganSach
                             .FirstOrDefaultAsync(n => n.MaNguoiDung == userId.Value && 
                                    n.MaDanhMuc == null && 
@@ -285,12 +239,8 @@ namespace Frontend.Controllers
                         
                         if (nganSachChung != null)
                         {
-                            // ✅ SoTienNganSachThang = Giá trị GỐC (không đổi)
-                            // ✅ SoTienHanMuc = Giá trị còn lại (được trừ)
                             nganSachChung.SoTienHanMuc -= SoTien;
                         }
-                        
-                        // 3. Trừ ngân sách danh mục (nếu có)
                         var nganSachDanhMuc = await _context.NganSach
                             .FirstOrDefaultAsync(n => n.MaNguoiDung == userId.Value && 
                                    n.MaDanhMuc == MaDanhMuc && 
@@ -307,26 +257,18 @@ namespace Frontend.Controllers
                 }
 
                 await _context.SaveChangesAsync();
-                
-                // ═══════════════════════════════════════════════════════════════
-                // STEP 4: TẠO THÔNG BÁO (biến động số dư, cảnh báo)
-                // ═══════════════════════════════════════════════════════════════
                 if (nguoiDung != null && danhMuc != null)
                 {
                     decimal soDuHienTai = nguoiDung.SoDuTaiKhoan ?? 0;
                     bool laThu = danhMuc.LoaiDanhMuc == "Thu" || danhMuc.LoaiDanhMuc == "Thu Nhập";
-
-                    // 4a. Thông báo biến động số dư (luôn tạo)
                     await _notificationService.TaoThongBaoGiaoDichAsync(
                         userId.Value, SoTien, danhMuc.TenDanhMuc ?? "Không rõ",
                         laThu, soDuHienTai, GhiChu);
 
                     if (!laThu)
                     {
-                        // 4b. Cảnh báo số dư sắp hết (dưới 100.000đ)
                         await _notificationService.KiemTraCanhBaoSapHetTienAsync(userId.Value, soDuHienTai);
 
-                        // 4c. Cảnh báo chi tiêu lớn
                         var (monthBudget, _, _, _) = await _expenseTrackingService.GetMonthlyBudgetInfoAsync(userId.Value);
                         await _notificationService.KiemTraCanhBaoChiTieuLonAsync(
                             userId.Value, SoTien, danhMuc.TenDanhMuc ?? "Không rõ",
@@ -357,7 +299,6 @@ namespace Frontend.Controllers
 
             try
             {
-                // Set user name for avatar
                 var user = await _userService.GetUserByIdAsync(userId.Value);
                 if (user != null)
                 {
@@ -404,11 +345,6 @@ namespace Frontend.Controllers
                 return View(new List<Backend.Models.GiaoDich>());
             }
         }
-
-        /// <summary>
-        /// Dashboard - Hiển thị tổng quan chi tiêu & ngân sách tháng
-        /// Sử dụng ExpenseTrackingService để tính chính xác
-        /// </summary>
         public async Task<IActionResult> Dashboard()
         {
             var userId = HttpContext.Session.GetInt32("UserId");
@@ -429,12 +365,9 @@ namespace Frontend.Controllers
                 ViewBag.UserName = user.HoTen;
                 ViewBag.UserEmail = user.Email;
                 ViewBag.AccountBalance = user.SoDuTaiKhoan;
-
-                // Lấy thông tin chi tiêu HÔM NAY
                 var todayExpense = await _expenseTrackingService.GetTodayExpenseAsync(userId.Value);
                 ViewBag.TodayExpense = todayExpense;
 
-                // Lấy thông tin NGÂN SÁCH & CHI TIÊU THÁNG dùng ExpenseTrackingService
                 var (monthlyBudget, monthlySpent, monthlyRemaining, percentUsed) = 
                     await _expenseTrackingService.GetMonthlyBudgetInfoAsync(userId.Value);
 
@@ -467,7 +400,8 @@ namespace Frontend.Controllers
                         g.GhiChu,
                         g.NgayGiaoDich,
                         TenDanhMuc = g.DanhMuc != null ? g.DanhMuc.TenDanhMuc : "N/A",
-                        BieuTuong = g.DanhMuc != null ? g.DanhMuc.BieuTuong : ""
+                        BieuTuong = g.DanhMuc != null ? g.DanhMuc.BieuTuong : "",
+                        LoaiDanhMuc = g.DanhMuc != null ? g.DanhMuc.LoaiDanhMuc : "Chi"
                     })
                     .ToListAsync();
                 ViewBag.RecentTransactions = recentTransactions;
@@ -476,7 +410,8 @@ namespace Frontend.Controllers
                     .Where(g => g.MaNguoiDung == userId.Value && 
                            g.NgayGiaoDich >= monthStart && 
                            g.NgayGiaoDich <= monthEnd &&
-                           g.DanhMuc != null)
+                           g.DanhMuc != null &&
+                           g.DanhMuc.LoaiDanhMuc == "Chi")
                     .GroupBy(g => new { g.DanhMuc.TenDanhMuc, g.DanhMuc.BieuTuong, g.MaDanhMuc })
                     .Select(g => new
                     {
@@ -489,6 +424,25 @@ namespace Frontend.Controllers
                     .OrderByDescending(x => x.Total)
                     .ToListAsync();
                 ViewBag.ExpenseByCategory = expenseByCategory;
+
+                var incomeByCategory = await _context.GiaoDich
+                    .Where(g => g.MaNguoiDung == userId.Value && 
+                           g.NgayGiaoDich >= monthStart && 
+                           g.NgayGiaoDich <= monthEnd &&
+                           g.DanhMuc != null &&
+                           (g.DanhMuc.LoaiDanhMuc == "Thu" || g.DanhMuc.LoaiDanhMuc == "Thu Nhập"))
+                    .GroupBy(g => new { g.DanhMuc.TenDanhMuc, g.DanhMuc.BieuTuong, g.MaDanhMuc })
+                    .Select(g => new
+                    {
+                        Category = g.Key.TenDanhMuc,
+                        Icon = g.Key.BieuTuong,
+                        Total = g.Sum(x => x.SoTien),
+                        Count = g.Count(),
+                        MaDanhMuc = g.Key.MaDanhMuc
+                    })
+                    .OrderByDescending(x => x.Total)
+                    .ToListAsync();
+                ViewBag.IncomeByCategory = incomeByCategory;
 
                 var danhSachDanhMuc = await _context.DanhMuc
                     .Where(d => d.MaNguoiDung == userId.Value)
@@ -505,12 +459,11 @@ namespace Frontend.Controllers
                     .Include(b => b.DanhMuc)
                     .ToListAsync();
 
-                // ✅ Fix dữ liệu cũ: Nếu SoTienNganSachThang = NULL, set = SoTienHanMuc
                 foreach (var budget in budgetByCategory)
                 {
                     if (!budget.SoTienNganSachThang.HasValue || budget.SoTienNganSachThang <= 0)
                     {
-                        budget.SoTienNganSachThang = Math.Max(budget.SoTienHanMuc, 0);  // Nếu Còn lại > 0 thì lấy nó làm gốc, ngược lại = 0
+                        budget.SoTienNganSachThang = Math.Max(budget.SoTienHanMuc, 0);
                     }
                 }
 
@@ -519,45 +472,38 @@ namespace Frontend.Controllers
                 {
                     if (budget.MaDanhMuc.HasValue)
                     {
-                        // ✅ Trừ trực tiếp → SoTienHanMuc = giá trị còn lại
-                        // Không cần tính từ SUM(GiaoDich) nữa
                         categoryBudgetInfo[budget.MaDanhMuc.Value] = new
                         {
                             SoTienHanMuc = budget.SoTienHanMuc,
                             NgayBatDau = budget.NgayBatDau,
                             NgayKetThuc = budget.NgayKetThuc,
                             MaNganSach = budget.MaNganSach,
-                            ChiTieu = 0, // Không dùng nữa vì SoTienHanMuc chính là giá trị còn lại
+                            ChiTieu = 0,
                             ConLai = budget.SoTienHanMuc
                         };
                     }
                 }
 
                 ViewBag.CategoryBudgetInfo = categoryBudgetInfo;
-
-                // ═══════════════════════════════════════════════════════════════
-                // Populate ViewBag.BudgetByCategory for "Trạng thái ngân sách"
-                // ═══════════════════════════════════════════════════════════════
                 var budgetByCategoryList = new List<dynamic>();
                 foreach (var budget in budgetByCategory)
                 {
                     if (budget.MaDanhMuc.HasValue && budget.DanhMuc != null)
                     {
-                        // ✅ Chỉ hiển thị nếu đã đặt hạn mức (SoTienNganSachThang > 0)
                         decimal original = budget.SoTienNganSachThang ?? 0m;
                         if (original <= 0)
-                            continue;  // Bỏ qua danh mục chưa có hạn mức
+                            continue;
                         
                         decimal remaining = budget.SoTienHanMuc;
-                        decimal spent = original - remaining;  // Gốc - Còn lại
+                        decimal spent = original - remaining;
 
                         budgetByCategoryList.Add(new
                         {
                             Category = budget.DanhMuc.TenDanhMuc,
                             Icon = budget.DanhMuc.BieuTuong,
-                            BudgetLimit = original,  // Giới hạn gốc (luôn dương)
-                            Spent = Math.Max(0, spent),  // Chi tiêu (không âm)
-                            Remaining = remaining,  // Còn lại (có thể âm)
+                            BudgetLimit = original,
+                            Spent = Math.Max(0, spent),
+                            Remaining = remaining,
                             MaNganSach = budget.MaNganSach
                         });
                     }
@@ -572,6 +518,7 @@ namespace Frontend.Controllers
                 _logger.LogError(ex, "Lỗi khi tải dữ liệu Dashboard");
                 ViewBag.RecentTransactions = new List<object>();
                 ViewBag.ExpenseByCategory = new List<object>();
+                ViewBag.IncomeByCategory = new List<object>();
                 ViewBag.DanhSachDanhMuc = new List<Backend.Models.DanhMuc>();
                 ViewBag.DanhMucList = new List<Backend.Models.DanhMuc>();
                 ViewBag.MonthBudget = 0;
